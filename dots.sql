@@ -114,21 +114,6 @@ CREATE TABLE `user_has_points` (
 -- --------------------------------------------------------
 
 --
--- Структура таблицы `user_has_points_copy1`
---
-
-DROP TABLE IF EXISTS `user_has_points_copy1`;
-CREATE TABLE `user_has_points_copy1` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
-  `point` point NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `game_id` int(10) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
 -- Структура таблицы `user_has_polygons`
 --
 
