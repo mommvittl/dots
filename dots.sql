@@ -23,7 +23,7 @@ CREATE DATABASE IF NOT EXISTS `dots` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8m
 USE `dots`;
 
 -- --------------------------------------------------------
-
+// deleted_points,deleted_polygons,user_has_points,user_has_points
 DROP TABLE IF EXISTS `deleted_points`;
 CREATE TABLE `deleted_points` (
   `id` bigint(20) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
@@ -47,7 +47,8 @@ CREATE TABLE `user_has_points` (
   `point` point NOT NULL,
   `accuracy`   int(10) UNSIGNED NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `game_id` int(10) UNSIGNED NOT NULL
+  `game_id` int(10) UNSIGNED NOT NULL,
+  `status` int(1) 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
