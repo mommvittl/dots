@@ -24,27 +24,39 @@ USE `dots`;
 
 -- --------------------------------------------------------
 
---
--- Структура таблицы `deleted_points`
---
-
 DROP TABLE IF EXISTS `deleted_points`;
 CREATE TABLE `deleted_points` (
-  `id` bigint(20) UNSIGNED NOT NULL,
+  `id` bigint(20) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `point_id` bigint(20) UNSIGNED NOT NULL,
   `game_id` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
--- --------------------------------------------------------
-
---
--- Структура таблицы `deleted_polygons`
---
 
 DROP TABLE IF EXISTS `deleted_polygons`;
 CREATE TABLE `deleted_polygons` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `polygon_id` int(10) UNSIGNED NOT NULL,
+  `game_id` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+DROP TABLE IF EXISTS `user_has_points`;
+CREATE TABLE `user_has_points` (
+  `id` bigint(20) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `point` point NOT NULL,
+  `accuracy`   int(10) UNSIGNED NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `game_id` int(10) UNSIGNED NOT NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+
+
+DROP TABLE IF EXISTS `user_has_polygons`;
+CREATE TABLE `user_has_polygons` (
+  `id` int(10) UNSIGNED NOT NULL  PRIMARY KEY AUTO_INCREMENT,
+  `user_id` int(10) UNSIGNED NOT NULL,
+  `polygon` polygon NOT NULL,
+  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `game_id` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -98,33 +110,7 @@ CREATE TABLE `user` (
 
 -- --------------------------------------------------------
 
---
--- Структура таблицы `user_has_points`
---
-
-DROP TABLE IF EXISTS `user_has_points`;
-CREATE TABLE `user_has_points` (
-  `id` bigint(20) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
-  `point` point NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `game_id` int(10) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
-
--- --------------------------------------------------------
-
---
--- Структура таблицы `user_has_polygons`
---
-
-DROP TABLE IF EXISTS `user_has_polygons`;
-CREATE TABLE `user_has_polygons` (
-  `id` int(10) UNSIGNED NOT NULL,
-  `user_id` int(10) UNSIGNED NOT NULL,
-  `polygon` polygon NOT NULL,
-  `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `game_id` int(10) UNSIGNED NOT NULL
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
+-
 
 --
 -- Индексы сохранённых таблиц
