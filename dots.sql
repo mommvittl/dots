@@ -23,7 +23,7 @@ CREATE DATABASE IF NOT EXISTS `dots` DEFAULT CHARACTER SET utf8mb4 COLLATE utf8m
 USE `dots`;
 
 -- --------------------------------------------------------
-// deleted_points,deleted_polygons,user_has_points,user_has_points
+
 DROP TABLE IF EXISTS `deleted_points`;
 CREATE TABLE `deleted_points` (
   `id` bigint(20) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
@@ -69,7 +69,7 @@ CREATE TABLE `user_has_polygons` (
 
 DROP TABLE IF EXISTS `game`;
 CREATE TABLE `game` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `user1_id` int(10) UNSIGNED NOT NULL,
   `user2_id` int(10) UNSIGNED NOT NULL,
   `start_time` datetime NOT NULL,
@@ -85,7 +85,7 @@ CREATE TABLE `game` (
 
 DROP TABLE IF EXISTS `ready`;
 CREATE TABLE `ready` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `user_id` int(10) UNSIGNED NOT NULL,
   `point` point NOT NULL,
   `opponent_id` int(10) UNSIGNED NOT NULL
@@ -99,7 +99,7 @@ CREATE TABLE `ready` (
 
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
-  `id` int(10) UNSIGNED NOT NULL,
+  `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `nick` varchar(30) NOT NULL,
   `email` varchar(50) NOT NULL,
   `password` text NOT NULL,

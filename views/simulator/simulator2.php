@@ -18,13 +18,13 @@ var myMap;
 var myPlacemark;
 
 var latitude = 49.9412902;
-var longitude = 36.3085217;
+var longitude = 36.3092217;
 var accuracy = 10;
 var speed = 1;
 
 var idGame = 1;
-var idGamer = 1;
-var idEnemy = 2;
+var idGamer = 2;
+var idEnemy = 1;
 
 var lastDotId = 0;
 var lastPolygonId = 0;
@@ -250,3 +250,6 @@ function AjaxGETResponse(){
 </script>	
 </BODY>
 </HTML>
+
+
+
