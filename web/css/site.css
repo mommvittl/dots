@@ -114,4 +114,6 @@ a.desc:after {
     outline: none;
 }
 
-#mapid { height: 500px; }
+#mapid {
+    height: 500px;
+}

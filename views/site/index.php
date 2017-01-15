@@ -13,7 +13,7 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
     <div class="body-content">
 
         <div class="row">
-            <div id="mapid"></div>
+            <div id="mapid">Getting your position...</div>
         </div>
 
     </div>
