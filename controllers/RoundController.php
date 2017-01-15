@@ -4,13 +4,14 @@ namespace app\controllers;
 use Yii;
 use app\models\User_has_points;
 use app\models\User_has_polygons;
-use app\models\deleted_points;
+use app\models\Deleted_points;
 use app\models\Deleted_polygons;
 
 ini_set('session.use_only_cookies',true);
 session_start();
  $_SESSION['logg'] = TRUE;
  $_SESSION['idGame'] = 1;
+ $_SESSION['idGamer'] = 1;
  $_SESSION['$idEnemy'] = 2;
  $_SESSION['$startTime'] = 1;
 
@@ -121,10 +122,10 @@ class RoundController extends \yii\base\Controller{
         // Проверка залогинен ли юзер
         if( !$this->loggout() ){
             $this->sendRequest( [  'status' => 'error', 'message' => 'error message 1' ] );
-        }   
+        }
        
         // Создание нового обьекта с параметрами запроса
-        $strParameter = filter_input(INPUT_POST, 'data');
+        $strParameter = file_get_contents('php://input');
         $parameterQuery = json_decode($strParameter);
         
         // Временная функция для отладки. Заполнение  переменной 'idGame'
@@ -132,7 +133,7 @@ class RoundController extends \yii\base\Controller{
         
         // Выбор данных для передачи на отрисовку  
         $this->arrAddDots = $this->getDotsForAdd( $parameterQuery->lastDotId );
-         $this->arrAddPolygon = $this->getPolygonForAdd( $parameterQuery->lastPolygonId );
+//         $this->arrAddPolygon = $this->getPolygonForAdd( $parameterQuery->lastPolygonId );
         list(  $this->lastDelDotId, $this->arrIdDeleteDots ) =  $this->getDotsForDelete( $parameterQuery->lastDelDotId );
         list(   $this->lastDelPolygonId, $this->arrIdDeletePolygon )  = $this->getPolygonForDelete( $parameterQuery->lastDelPolygonId );
         
@@ -156,7 +157,7 @@ class RoundController extends \yii\base\Controller{
          header('Cache-Control: no-cache, must-revalidate'); 
          header('Pragma: no-cache');
      
-         exit( json_encode( $ajaxRequest ) );
+         echo ( json_encode( $ajaxRequest ) );
               
   }
     
