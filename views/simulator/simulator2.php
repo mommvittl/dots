@@ -75,9 +75,30 @@ function  viewAddDots( responseData ){
 }
 function  viewAddPolygons( responseData ){
      if( responseData.arrAddPolygon.length == 0 ){ return false; }
+      for( var i = 0; i < responseData.arrAddPolygon.length; i++ ){
+         var newRing = [];
+         var poligon = responseData.arrAddPolygon[ i ].arrDot;
+         for( var j = 0; j < poligon.length; j++){
+            newRing.push( [ poligon[ j ].latitude , poligon[ j ].longitude ] ); 
+         }
+         var gamerColor = ( responseData.arrAddPolygon[ i ].gamer == 'me'  ) ? '#FFA500' : '#87CEEB' ;
+         lastPolygonId = responseData.arrAddPolygon[ i ].id ;
+         polygons[ lastPolygonId ] = new ymaps.Polygon(
+	[ newRing ],
+	{ hintContent: "Многоугольник" },
+	{ fillColor: gamerColor, strokeWidth: 8,opacity: 0.5 }											
+	); 
+         myMap.geoObjects.add( polygons[ lastPolygonId ] );
+     }
 }
 function  viewDeleteDots( responseData ){
      if( responseData.arrIdDeleteDots.length == 0 ){ return false; }
+         for( var i =0; i < responseData.arrIdDeleteDots.length; i++ ){
+         var idDot = responseData.arrIdDeleteDots[ i ].id;
+         myMap.geoObjects.remove( dots[ idDot ] );
+         delete dots[ idDot ];
+     }
+       return true;     
 }
 function  viewDeletePolygons( responseData ){
      if( responseData.lastDelPolygonId.length == 0 ){ return false; }
