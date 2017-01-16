@@ -7,7 +7,9 @@ use yii\web\Controller;
 class SimulatorController  extends Controller{
     
     public function actionSimulator() {
-    //   return $this->render('simulator');    
+    //   return $this->render('simulator');  
+ 
+        
         ?>
         <!DOCTYPE html>
 <HTML>
@@ -44,17 +46,17 @@ var lastDelPolygonId = 0;
 
 var dots = { };
 var polygons = { };
-//var timerId = setInterval( getNewCommand, 1000 );
+var timerId = setInterval( getNewCommand, 1000 );
 //------------------------------------------------------
 var start = document.getElementById( 'startBut' );
 start.onclick = getNewCommand;
 //----------------------------------------------------
 function getNewCommand(){
-    var theParam = 'data=' + JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
+    var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
     ajaxGet.setAjaxQuery('http://dots/round/get_change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
-     alert(responseXMLDocument );
+//     alert(responseXMLDocument );
     var response = JSON.parse( responseXMLDocument );
     viewAddDots( response );
     viewAddPolygons( response );
@@ -112,7 +114,13 @@ function  viewDeleteDots( responseData ){
        return true;      
 }
 function  viewDeletePolygons( responseData ){
-     if( responseData.lastDelPolygonId.length == 0 ){ return false; }
+     if( responseData.arrIdDeletePolygon.length == 0 ){ return false; }
+     for( var i =0; i < responseData.arrIdDeletePolygon.length; i++ ){
+         var idPoly = responseData.arrIdDeletePolygon[ i ].id;
+         myMap.geoObjects.remove( polygons[ idPoly ] );
+         delete polygons[ idPoly ];
+     }
+       return true;
 }
 //------------------------------------------------------
 ymaps.ready(function () {
@@ -146,8 +154,8 @@ document.body.onkeydown = function(event){
 } 	
 //----------------------------------------------------
 function changePosition(){	
-	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer };
-	var theParam = 'data=' + JSON.stringify( parameter );
+	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy };
+	var theParam =  JSON.stringify( parameter );
 	ajaxPost.setAjaxQuery('http://dots/round/change_position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------
 	myPlacemark.editor.startEditing();
@@ -156,7 +164,8 @@ function changePosition(){
 }
 
 function viewNewPosition( responseXMLDocument ){
-                alert(responseXMLDocument );
+                // alert(responseXMLDocument );
+                console.log( responseXMLDocument );
 	var response = JSON.parse( responseXMLDocument );
    
 }
@@ -287,7 +296,9 @@ function AjaxGETResponse(){
     }
     
     public function actionSimulator2() {
-     //  return $this->render('simulator2');    
+     //  return $this->render('simulator2');   
+  
+     
         ?>
         
         <!DOCTYPE html>
@@ -310,7 +321,7 @@ var myMap;
 var myPlacemark;
 
 var latitude = 49.9412902;
-var longitude = 36.3092217;
+var longitude = 36.3087217;
 var accuracy = 10;
 var speed = 1;
 
@@ -325,17 +336,17 @@ var lastDelPolygonId = 0;
 
 var dots = { };
 var polygons = { };
-//var timerId = setInterval( getNewCommand, 1000 );
+var timerId = setInterval( getNewCommand, 1000 );
 //------------------------------------------------------
 var start = document.getElementById( 'startBut' );
 start.onclick = getNewCommand;
 //----------------------------------------------------
 function getNewCommand(){
-    var theParam = 'data=' + JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
+    var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
     ajaxGet.setAjaxQuery('http://dots/round/get_change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
-     alert(responseXMLDocument );
+     // alert(responseXMLDocument );
     var response = JSON.parse( responseXMLDocument );
     viewAddDots( response );
     viewAddPolygons( response );
@@ -388,13 +399,18 @@ function  viewDeleteDots( responseData ){
          for( var i =0; i < responseData.arrIdDeleteDots.length; i++ ){
          var idDot = responseData.arrIdDeleteDots[ i ].id;
          myMap.geoObjects.remove( dots[ idDot ] );
-         delete dots[ idDot ];
-         
+         delete dots[ idDot ];      
      }
        return true;     
 }
 function  viewDeletePolygons( responseData ){
-     if( responseData.lastDelPolygonId.length == 0 ){ return false; }
+     if( responseData.arrIdDeletePolygon.length == 0 ){ return false; }
+     for( var i =0; i < responseData.arrIdDeletePolygon.length; i++ ){
+         var idPoly = responseData.arrIdDeletePolygon[ i ].id;
+         myMap.geoObjects.remove( polygons[ idPoly ] );
+         delete polygons[ idPoly ];
+     }
+     return true;
 }
 //------------------------------------------------------
 ymaps.ready(function () {
@@ -428,8 +444,8 @@ document.body.onkeydown = function(event){
 } 	
 //----------------------------------------------------
 function changePosition(){	
-	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer };
-	var theParam = 'data=' + JSON.stringify( parameter );
+	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy };
+	var theParam =  JSON.stringify( parameter );
 	ajaxPost.setAjaxQuery('http://dots/round/change_position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------
 	myPlacemark.editor.startEditing();
@@ -438,7 +454,8 @@ function changePosition(){
 }
 
 function viewNewPosition( responseXMLDocument ){
-                alert(responseXMLDocument );
+               //  alert(responseXMLDocument );
+                  console.log( responseXMLDocument );
 	var response = JSON.parse( responseXMLDocument );
    
 }

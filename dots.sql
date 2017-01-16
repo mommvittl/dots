@@ -27,7 +27,7 @@ USE `dots`;
 DROP TABLE IF EXISTS `deleted_points`;
 CREATE TABLE `deleted_points` (
   `id` bigint(20) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
-  `point_id` bigint(20) UNSIGNED NOT NULL,
+  `point_id` bigint(20) UNSIGNED NOT NULL  ,
   `game_id` int(10) UNSIGNED NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
@@ -35,8 +35,8 @@ CREATE TABLE `deleted_points` (
 DROP TABLE IF EXISTS `deleted_polygons`;
 CREATE TABLE `deleted_polygons` (
   `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
-  `polygon_id` int(10) UNSIGNED NOT NULL,
-  `game_id` int(10) UNSIGNED NOT NULL
+  `polygon_id` int(10) UNSIGNED NOT NULL ,
+  `game_id` int(10) UNSIGNED NOT NULL 
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -48,7 +48,7 @@ CREATE TABLE `user_has_points` (
   `accuracy`   int(10) UNSIGNED NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `game_id` int(10) UNSIGNED NOT NULL,
-  `status` int(1) 
+  `status` int(1)  DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -58,7 +58,8 @@ CREATE TABLE `user_has_polygons` (
   `user_id` int(10) UNSIGNED NOT NULL,
   `polygon` polygon NOT NULL,
   `timestamp` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `game_id` int(10) UNSIGNED NOT NULL
+  `game_id` int(10) UNSIGNED NOT NULL,
+  `status` int(1)  DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
