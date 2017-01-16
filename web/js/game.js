@@ -17,6 +17,7 @@ var options = {
 
 var start = performance.now();
 navigator.geolocation.getCurrentPosition(drawMap);
+
 function drawMap(pos) {
     currentPos = pos.coords;
     if (!map) {
@@ -40,12 +41,11 @@ function drawMap(pos) {
     start = performance.now();
     watchID = navigator.geolocation.watchPosition(success, error, options);
 }
-/*
- actionGetChange. Входные данные: сериализованный JSON - { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId,
-  'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId }.
-*/
 
 function getData(){
+    if (watchID == null) {
+        return false;
+    }
     var data = {lastDotId: lastDotId,
         lastPolygonId: lastPolygonId,
         lastDelDotId: lastDelDotId,
@@ -62,22 +62,54 @@ function getData(){
     });
 }
 
+function sendPoint(point){
+    console.log(JSON.stringify(point));
+    console.log(point);
+    $.ajax({
+        type: 'POST',
+        url: "/round/change_position",
+        data: JSON.stringify(point),
+        success: getData,
+        timeout: 4000
+    });
+}
+/*
+Object {
+    arrAddDots: Array[0],
+    arrAddPolygon: Array[0],
+    arrIdDeleteDots: Array[0],
+    arrIdDeletePolygon: Array[0],
+    lastDelDotId: 0,
+    lastDelPolygonId: 0 }
+*/
+
 function drawData(data) {
     data = JSON.parse(data);
     console.log(data);
-}
-
-function success(pos) {
-    currentPos = pos.coords;
-    myPoints[myPoints.length] = L.circle([currentPos.latitude, currentPos.longitude], {
+    /*myPoints[myPoints.length] = L.circle([currentPos.latitude, currentPos.longitude], {
         color: 'red',
         fillColor: '#f03',
         fillOpacity: 0.5,
         radius: 10
-    }).addTo(map);
+    }).addTo(map);*/
+}
+
+function stopWatch() {
+    navigator.geolocation.clearWatch(watchID);
+    watchID = null;
+}
+
+function success(pos) {
+    currentPos = pos.coords;
     var time = performance.now();
     console.log(currentPos.latitude + ', ' + currentPos.longitude + ', ' + currentPos.accuracy + " " + (time-start)/1000);
     start = performance.now();
+    var point = {'latitude': currentPos.latitude,
+        'longitude': currentPos.longitude,
+        'accuracy': currentPos.accuracy,
+        'speed': currentPos.speed
+    };
+    sendPoint(point);
 }
 
 function error(err) {
