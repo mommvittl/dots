@@ -75,7 +75,7 @@ CREATE TABLE `game` (
   `user2_id` int(10) UNSIGNED NOT NULL,
   `start_time` datetime NOT NULL,
   `winner_id` int(10) UNSIGNED NOT NULL,
-  `points` smallint(5) UNSIGNED DEFAULT NULL
+  `scores` smallint(5) UNSIGNED DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -105,7 +105,7 @@ CREATE TABLE `user` (
   `email` varchar(50) NOT NULL,
   `password` text NOT NULL,
   `game_id` int(10) UNSIGNED DEFAULT NULL,
-  `points` smallint(5) UNSIGNED DEFAULT NULL,
+  `scores` smallint(5) UNSIGNED DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
   `point` point DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;

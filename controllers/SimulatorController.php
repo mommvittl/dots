@@ -53,7 +53,7 @@ start.onclick = getNewCommand;
 //----------------------------------------------------
 function getNewCommand(){
     var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
-    ajaxGet.setAjaxQuery('http://dots/round/get_change' , theParam , getResponseScript , 'POST' , 'text');
+    ajaxGet.setAjaxQuery('http://dots/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
 //     alert(responseXMLDocument );
@@ -156,7 +156,7 @@ document.body.onkeydown = function(event){
 function changePosition(){	
 	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy };
 	var theParam =  JSON.stringify( parameter );
-	ajaxPost.setAjaxQuery('http://dots/round/change_position' , theParam , viewNewPosition , 'POST' , 'text');
+	ajaxPost.setAjaxQuery('http://dots/round/change-position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------
 	myPlacemark.editor.startEditing();
 	myPlacemark.geometry.setCoordinates( [latitude , longitude] );
@@ -343,7 +343,7 @@ start.onclick = getNewCommand;
 //----------------------------------------------------
 function getNewCommand(){
     var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
-    ajaxGet.setAjaxQuery('http://dots/round/get_change' , theParam , getResponseScript , 'POST' , 'text');
+    ajaxGet.setAjaxQuery('http://dots/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
      // alert(responseXMLDocument );
@@ -446,7 +446,7 @@ document.body.onkeydown = function(event){
 function changePosition(){	
 	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy };
 	var theParam =  JSON.stringify( parameter );
-	ajaxPost.setAjaxQuery('http://dots/round/change_position' , theParam , viewNewPosition , 'POST' , 'text');
+	ajaxPost.setAjaxQuery('http://dots/round/change-position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------
 	myPlacemark.editor.startEditing();
 	myPlacemark.geometry.setCoordinates( [latitude , longitude] );

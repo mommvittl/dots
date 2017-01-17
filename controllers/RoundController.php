@@ -50,7 +50,7 @@ class RoundController extends \yii\base\Controller{
   // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
   // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------  
-  public function actionChange_position() {
+  public function actionChangePosition() {
         
        // Проверка залогинен ли юзер
          if( !$this->loggout() ){
@@ -124,7 +124,7 @@ class RoundController extends \yii\base\Controller{
   }
    
   // Ф-я прердачи на браузер изменений состояния точек ----------------------------------------------------------------
-  public function actionGet_change() {
+  public function actionGetChange() {
         // Проверка залогинен ли юзер
         if( !$this->loggout() ){
             $this->sendRequest( [  'status' => 'error', 'message' => 'error message 1' ] );
@@ -157,14 +157,15 @@ class RoundController extends \yii\base\Controller{
   //=========== Ф-ии метода Change_position() ==========================================  
   protected function sendRequest($ajaxRequest) {
         
-         header('Content-Type: text/XML');
+         header('Content-Type: text/json');
          header('Expires: Mon, 26 Jul 1997 05:00:00 GMT' ); 
          header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . 'GMT'); 
          header('Cache-Control: no-cache, must-revalidate'); 
          header('Pragma: no-cache');
     
-        exit( json_encode( $ajaxRequest ) );
-              
+        //exit( json_encode( $ajaxRequest ) );
+         echo( json_encode( $ajaxRequest ) ); 
+         exit;
   }
     
     //Ф-я проверки залогинености пользователя. Возвращает true/false.
@@ -282,7 +283,8 @@ class RoundController extends \yii\base\Controller{
   // 1м радиуса точности соотв 0,0000075 градусной меры
   protected function repeatVisit($position) {   
     //  $radiusAccuracy = 0.00001;  // !!!!! - написать рассчет радиуса точности
-     $radiusAccuracy = 0.0000075 * $position->accuracy;
+    // $radiusAccuracy = 0.0000075 * $position->accuracy;
+     $radiusAccuracy = 0.000375;
      $strQuery = " SELECT `id` FROM `user_has_points` WHERE `game_id`= " . $this->idGame
         . " AND `user_id`=" . $this->idGamer . " AND  `status`='1'  AND  "
         . " ST_Distance( `point`, PointFromText('POINT(" . $position->latitude . " " . $position->longitude .  ")')) "
