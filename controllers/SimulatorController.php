@@ -4,12 +4,16 @@
 namespace app\controllers;
 use yii\web\Controller;
 
+ini_set('session.use_only_cookies',true);
+session_start();
+$_SESSION['logg'] = TRUE;
+
 class SimulatorController  extends Controller{
     
     public function actionSimulator() {
     //   return $this->render('simulator');  
  
-        
+        $_SESSION[ 'idGamer' ] = 1 ;
         ?>
         <!DOCTYPE html>
 <HTML>
@@ -20,7 +24,10 @@ class SimulatorController  extends Controller{
 </HEAD>
  <BODY>
  <h1>JS Test debugger</h1>
- <p><button type="button" id="startBut">Start</button><button type="button" id="stopBut">Stop</button></p>
+ <p><button type="button" id="startBut">Start</button><button type="button" id="readyBut">Ready</button>
+ <button type="button" id="unReady">unReady</button><button type="button" id="selEnemy">selEnemy</button>
+ <INPUT type="number" min="1" id="numEmemy" name="numEmemy"></input></p>
+ 
  <div id="YMapsID" style="width: 900px; height: 700px; margin: 0 auto; "></div>
 
 <script>
@@ -46,17 +53,52 @@ var lastDelPolygonId = 0;
 
 var dots = { };
 var polygons = { };
-var timerId = setInterval( getNewCommand, 1000 );
+//var timerId = setInterval( getNewCommand, 1000 );
 //------------------------------------------------------
 var start = document.getElementById( 'startBut' );
 start.onclick = getNewCommand;
+
+var ready = document.getElementById( 'readyBut' );
+ready.onclick = getReadyCommand;
+
+var unReady = document.getElementById('unReady');
+unReady.onclick = unReadyCommand; 
+
+var selEnemy = document.getElementById('selEnemy');
+selEnemy.onclick = selEnemyCommand; 
+//----------------------------------------------------------
+function getReadyCommand(){
+     var theParam =  JSON.stringify( {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer } );
+    ajaxGet.setAjaxQuery('http://dots/ruling/get-ready' , theParam , viewGetReady , 'POST' , 'text');
+}
+function viewGetReady( responseXMLDocument ){
+      alert(responseXMLDocument );
+      
+}
+// ---------------------------------------------------
+function unReadyCommand(){
+     var theParam =  JSON.stringify( {  'idGamer' : idGamer } );
+     ajaxGet.setAjaxQuery('http://dots/ruling/stop-ready' , theParam , viewStopReady , 'POST' , 'text');
+}
+function viewStopReady( responseXMLDocument ){
+     alert(responseXMLDocument );
+}
+// ---------------------------------------------------
+function selEnemyCommand(){
+    var num = document.getElementById('numEmemy').value;
+     var theParam =  JSON.stringify( {   'idGamer' : idGamer,  'idEnemy' : num  } );
+     ajaxGet.setAjaxQuery('http://dots/ruling/enemy-selection' , theParam , viewSelEnemy , 'POST' , 'text');
+}
+function viewSelEnemy( responseXMLDocument ){
+     alert(responseXMLDocument );
+}
 //----------------------------------------------------
 function getNewCommand(){
     var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
     ajaxGet.setAjaxQuery('http://dots/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
-//     alert(responseXMLDocument );
+     alert(responseXMLDocument );
     var response = JSON.parse( responseXMLDocument );
     viewAddDots( response );
     viewAddPolygons( response );
@@ -164,7 +206,7 @@ function changePosition(){
 }
 
 function viewNewPosition( responseXMLDocument ){
-                // alert(responseXMLDocument );
+                alert(responseXMLDocument );
                 console.log( responseXMLDocument );
 	var response = JSON.parse( responseXMLDocument );
    
@@ -298,7 +340,7 @@ function AjaxGETResponse(){
     public function actionSimulator2() {
      //  return $this->render('simulator2');   
   
-     
+   $_SESSION[ 'idGamer' ] = 2 ;
         ?>
         
         <!DOCTYPE html>
@@ -310,7 +352,10 @@ function AjaxGETResponse(){
 </HEAD>
  <BODY>
  <h1>JS Test debugger</h1>
- <p><button type="button" id="startBut">Start</button><button type="button" id="stopBut">Stop</button></p>
+ <p><button type="button" id="startBut">Start</button><button type="button" id="readyBut">Ready</button>
+ <button type="button" id="unReady">unReady</button><button type="button" id="selEnemy">selEnemy</button>
+ <INPUT type="number" min="1" id="numEmemy" name="numEmemy"></input></p>
+ 
  <div id="YMapsID" style="width: 900px; height: 700px; margin: 0 auto; "></div>
 
 <script>
@@ -321,7 +366,7 @@ var myMap;
 var myPlacemark;
 
 var latitude = 49.9412902;
-var longitude = 36.3087217;
+var longitude = 36.3085217;
 var accuracy = 10;
 var speed = 1;
 
@@ -336,17 +381,51 @@ var lastDelPolygonId = 0;
 
 var dots = { };
 var polygons = { };
-var timerId = setInterval( getNewCommand, 1000 );
+//var timerId = setInterval( getNewCommand, 1000 );
 //------------------------------------------------------
 var start = document.getElementById( 'startBut' );
 start.onclick = getNewCommand;
+
+var ready = document.getElementById( 'readyBut' );
+ready.onclick = getReadyCommand;
+
+var unReady = document.getElementById('unReady');
+unReady.onclick = unReadyCommand; 
+
+var selEnemy = document.getElementById('selEnemy');
+selEnemy.onclick = selEnemyCommand; 
+//----------------------------------------------------------
+function getReadyCommand(){
+     var theParam =  JSON.stringify( {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer } );
+    ajaxGet.setAjaxQuery('http://dots/ruling/get-ready' , theParam , viewGetReady , 'POST' , 'text');
+}
+function viewGetReady( responseXMLDocument ){
+      alert(responseXMLDocument );
+}
+// ---------------------------------------------------
+function unReadyCommand(){
+     var theParam =  JSON.stringify( {  'idGamer' : idGamer } );
+     ajaxGet.setAjaxQuery('http://dots/ruling/stop-ready' , theParam , viewStopReady , 'POST' , 'text');
+}
+function viewStopReady( responseXMLDocument ){
+     alert(responseXMLDocument );
+}
+// ---------------------------------------------------
+function selEnemyCommand(){
+    var num = document.getElementById('numEmemy').value;
+     var theParam =  JSON.stringify( {   'idGamer' : idGamer,  'idEnemy' : num  } );
+     ajaxGet.setAjaxQuery('http://dots/ruling/enemy-selection' , theParam , viewSelEnemy , 'POST' , 'text');
+}
+function viewSelEnemy( responseXMLDocument ){
+     alert(responseXMLDocument );
+}
 //----------------------------------------------------
 function getNewCommand(){
     var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
     ajaxGet.setAjaxQuery('http://dots/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
-     // alert(responseXMLDocument );
+    alert(responseXMLDocument );
     var response = JSON.parse( responseXMLDocument );
     viewAddDots( response );
     viewAddPolygons( response );
@@ -396,12 +475,12 @@ function  viewAddPolygons( responseData ){
 }
 function  viewDeleteDots( responseData ){
      if( responseData.arrIdDeleteDots.length == 0 ){ return false; }
-         for( var i =0; i < responseData.arrIdDeleteDots.length; i++ ){
+     for( var i =0; i < responseData.arrIdDeleteDots.length; i++ ){
          var idDot = responseData.arrIdDeleteDots[ i ].id;
          myMap.geoObjects.remove( dots[ idDot ] );
-         delete dots[ idDot ];      
+         delete dots[ idDot ];
      }
-       return true;     
+       return true;      
 }
 function  viewDeletePolygons( responseData ){
      if( responseData.arrIdDeletePolygon.length == 0 ){ return false; }
@@ -410,7 +489,7 @@ function  viewDeletePolygons( responseData ){
          myMap.geoObjects.remove( polygons[ idPoly ] );
          delete polygons[ idPoly ];
      }
-     return true;
+       return true;
 }
 //------------------------------------------------------
 ymaps.ready(function () {
@@ -454,8 +533,8 @@ function changePosition(){
 }
 
 function viewNewPosition( responseXMLDocument ){
-               //  alert(responseXMLDocument );
-                  console.log( responseXMLDocument );
+                alert(responseXMLDocument );
+                console.log( responseXMLDocument );
 	var response = JSON.parse( responseXMLDocument );
    
 }

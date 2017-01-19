@@ -10,11 +10,8 @@ use app\models\Deleted_polygons;
 // Временные данные . Заполнение сесии. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ini_set('session.use_only_cookies',true);
 session_start();
- $_SESSION['logg'] = TRUE;
- $_SESSION['idGame'] = 1;
- $_SESSION['idGamer'] = 1;
- $_SESSION['$idEnemy'] = 2;
- $_SESSION['$startTime'] = 1;
+
+
 // конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
 class RoundController extends \yii\base\Controller{
@@ -51,26 +48,26 @@ class RoundController extends \yii\base\Controller{
   
   // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------  
   public function actionChangePosition() {
-        
+    
        // Проверка залогинен ли юзер
          if( !$this->loggout() ){
             $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
         }   
-        
+           
         // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
         
         // Временная функция для отладки. Заполнение  переменной 'idGame', 'idEnemy' . !!!!!!!!!!!!!!!!!!!
-        $this->idGamer =  $newPosition->idGamer ;  
-        $this->idEnemy =  $newPosition->idEnemy ;  
+       // $this->idGamer =  $newPosition->idGamer ;  
+       // $this->idEnemy =  $newPosition->idEnemy ;  
         // конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         // Проверка валидности новых данных
         if( !$this->newPositionValidate($newPosition) ){
              $this->sendRequest( [  'status' => 'error', 'message' => 'error message validate' ] );
         }
-    
+     // $this->sendRequest( [  'status' => 'test', 'message' => 'test message validate' ] );
         //Проверка новой точки на попадание в полигон    
         if( $this->inPolygons( $newPosition ) ){
             // Если попали в полигон - обрезаем хвост
@@ -125,9 +122,10 @@ class RoundController extends \yii\base\Controller{
    
   // Ф-я прердачи на браузер изменений состояния точек ----------------------------------------------------------------
   public function actionGetChange() {
+    
         // Проверка залогинен ли юзер
         if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error message 1' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
         }
        
         // Создание нового обьекта с параметрами запроса
@@ -172,17 +170,41 @@ class RoundController extends \yii\base\Controller{
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
         if ( isset($_SESSION['logg']) &&  $_SESSION['logg'] === TRUE ){
-            $this->idGame = $_SESSION['idGame'];
-            $this->idGamer = $_SESSION['idGamer'];
-            $this->idEnemy = $_SESSION['$idEnemy'];
+            $this->idGame =  (int)$_SESSION['idGame'];
+            $this->idGamer =  (int)$_SESSION['idGamer'];
+            $this->idEnemy =  (int)$_SESSION['$idEnemy'];
             $this->startTime = $_SESSION['$startTime'];
-       
+            
+            //$mess = [  $this->idGame, $this->idGamer, $this->idEnemy, $this->startTime  ];
+           // $this->sendRequest( [  'status' => 'error', 'message' => $mess ] );
+            
+            if( !$this->existenceUser( $this->idGamer ) ){ return FALSE; }   
+            if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ){ return FALSE; }
             return TRUE;
         }
         return  FALSE ;
   }
-    
-    //Ф-я валидации новой позиции. Возвращает true/false.
+  
+  // Ф-я проверки существования в таблице `user` юзера с заданным id. Возвращает true/false.
+  protected function existenceUser( $idUser ) {
+      $query = 'SELECT count(*)  FROM `user` WHERE `id` = ' .  $idUser;            
+      $col = Yii::$app->db->createCommand( $query  )->queryScalar();  
+      return ( $col  ) ? TRUE : FALSE ;
+  }
+  
+  // Ф-я проверки существования игры. Возвращает true/false.
+  // Принимает $idGame, $idGamer, $idEnemy
+  protected function existenceGame( $idGame, $idGamer, $idEnemy ) {
+      $query = ' SELECT count(*) FROM `game` WHERE `id`= :idGame and `winner_id` is NULL and ' 
+         . ' ( (  `user1_id`= :idGamer AND `user2_id` = :idEnemy ) OR '
+         . ' ( `user1_id`= :idEnemy AND `user2_id` = :idGamer ) ) ';
+       $col = Yii::$app->db->createCommand( $query )
+              ->bindValues( [ ':idGame' => $idGame , ':idGamer' => $idGamer , ':idEnemy' => $idEnemy ] )
+              ->queryScalar();
+        return ( $col  ) ? TRUE : FALSE ;
+  }
+  
+  //Ф-я валидации новой позиции. Возвращает true/false.
   protected function newPositionValidate($position) {
         
          if ( !is_object($position) ){  return FALSE; }
@@ -195,10 +217,6 @@ class RoundController extends \yii\base\Controller{
          if ( ( $position->longitude <= 0 ) || ( $position->longitude >= 90 ) ) {  return FALSE; }  ;
          if (  ($position->accuracy <= 0) || ($position->accuracy >=500 )  ) {  return FALSE; }  ;
          if (  $position->speed   <= 0 ) {  return FALSE; }  ;
-         $query = ' SELECT ST_Distance( `point` , PointFromText( "POINT( ' .  $position->latitude;
-         $query .=  ' ' .  $position->longitude . ' )"  )  )  AS dist FROM `user` where 1 ' ;
-         $distanse =   Yii::$app->db->createCommand( $query )->queryOne() ;
-         if ( $distanse[ 'dist' ] > 1 ) {  return FALSE; }  
          return TRUE; 
       
   } 
@@ -283,8 +301,8 @@ class RoundController extends \yii\base\Controller{
   // 1м радиуса точности соотв 0,0000075 градусной меры
   protected function repeatVisit($position) {   
     //  $radiusAccuracy = 0.00001;  // !!!!! - написать рассчет радиуса точности
-    // $radiusAccuracy = 0.0000075 * $position->accuracy;
-     $radiusAccuracy = 0.000375;
+     $radiusAccuracy = 0.0000075 * $position->accuracy;
+     //$radiusAccuracy = 0.000375;
      $strQuery = " SELECT `id` FROM `user_has_points` WHERE `game_id`= " . $this->idGame
         . " AND `user_id`=" . $this->idGamer . " AND  `status`='1'  AND  "
         . " ST_Distance( `point`, PointFromText('POINT(" . $position->latitude . " " . $position->longitude .  ")')) "
