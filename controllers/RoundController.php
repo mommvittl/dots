@@ -7,12 +7,8 @@ use app\models\User_has_polygons;
 use app\models\Deleted_points;
 use app\models\Deleted_polygons;
 
-// Временные данные . Заполнение сесии. !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 ini_set('session.use_only_cookies',true);
 session_start();
-
-
-// конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
  
 class RoundController extends \yii\base\Controller{
    
@@ -26,7 +22,8 @@ class RoundController extends \yii\base\Controller{
   protected $arrIdDeletePolygon = [];
   protected $lastDelDotId = 0;
   protected $lastDelPolygonId = 0;
- 
+  protected $item = 0; // Заработанные в этом вызове очки
+  
   // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   public function actionIndex() {
      
@@ -51,21 +48,16 @@ class RoundController extends \yii\base\Controller{
     
        // Проверка залогинен ли юзер
          if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
         }   
            
         // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
         
-        // Временная функция для отладки. Заполнение  переменной 'idGame', 'idEnemy' . !!!!!!!!!!!!!!!!!!!
-       // $this->idGamer =  $newPosition->idGamer ;  
-       // $this->idEnemy =  $newPosition->idEnemy ;  
-        // конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-        
         // Проверка валидности новых данных
         if( !$this->newPositionValidate($newPosition) ){
-             $this->sendRequest( [  'status' => 'error', 'message' => 'error message validate' ] );
+             $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data' ] );
         }
      // $this->sendRequest( [  'status' => 'test', 'message' => 'test message validate' ] );
         //Проверка новой точки на попадание в полигон    
@@ -125,15 +117,12 @@ class RoundController extends \yii\base\Controller{
     
         // Проверка залогинен ли юзер
         if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
         }
        
         // Создание нового обьекта с параметрами запроса
         $strParameter = file_get_contents('php://input');
         $parameterQuery = json_decode($strParameter);
-        
-        // Временная функция для отладки. Заполнение  переменной 'idGame'
-        $this->idGamer =  $parameterQuery->idGamer ;  
         
         // Выбор данных для передачи на отрисовку  
         $this->arrAddDots = $this->getDotsForAdd( $parameterQuery->lastDotId );

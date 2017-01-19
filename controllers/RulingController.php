@@ -18,29 +18,43 @@ class RulingController extends \yii\base\Controller{
          $this->idGamer = 33;
          $idGamer = 'sdsdd';
          $idEnemy = null;
-         $query = [ $_SESSION['idGame'] , $_SESSION['idGamer'] , $_SESSION['$idEnemy'] , $_SESSION['$startTime'] ];
+         $query = [
+                        $_SESSION['idGame'] , 
+                        $_SESSION['idGamer'] , 
+                        $_SESSION['$idEnemy'] , 
+                        $_SESSION['$startTime'] 
+                         ];
        
           return  $this->render('test' , [  'dots' =>$query ]);
           
           
      }
      
-    // Ф-я обработки запроса ready ------------------------------------------------------------------------------------------
+    // Ф-я обработки запроса ready.  ------------------------------------------------------------------------------------------
+    // Входные данные,json: { 'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed }
+    // Создает ( или обновляет ) запись в таблице ready с передаными координатами . Возвращает json
+    //  { 'opponent' : 0 , 'idGame' : 0 ,
+    //   'arrOpponents' : [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ] } 
+    //   arrOpponents - массив потенциальных соперников, у которых есть статус ready .
+    // Если в поле opponent_id записан id соперника - он возвращается в соот.поле ответа вместе с 
+    // idGame. В сессии сохраняются $idGame, $idEnemy, $startTime - id игрока , его противника и 
+    // стартовое время игры. Игра стартовала. Можно отправлять точки на обработку и получать данные
     public function actionGetReady() {
       
         // Проверка залогинен ли юзер
          if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
         }   
           
          // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
-          
-        // Временная функция для отладки. Заполнение  переменной 'idGame', 'idEnemy' . !!!!!!!!!!!!!!!!!!!
-        // $this->idGamer =  (int)$newPosition->idGamer ;  
-        // конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-  
+        
+        // Валидация переданых координат
+         if( !$this->newPositionValidate($newPosition) ){
+             $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data' ] );
+        }
+        
         // Создание новой записи в таблице `ready` или обновление координат, если запись есть
         // Принимает idGamer, возвращает данные поля opponent_id и idGame
         $request = $this->updateReady(  $newPosition );
@@ -53,18 +67,14 @@ class RulingController extends \yii\base\Controller{
     }
     
     // Ф-я отмены статуса ready -----------------------------------------------------------------------------------------------
+    // Удаляет запись из таблицы ready пользователя с id, полученным из сессии, если у него еще
+    // нет оппонента( т.е. поле `opponent_id` -  is null )
     public function actionStopReady() {
         
          // Проверка залогинен ли юзер
          if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
         }  
-        
-        // Временная функция для отладки. Заполнение  переменной 'idGame', 'idEnemy' . !!!!!!!!!!!!!!!!!!!
-        $strParameter = file_get_contents('php://input');
-        $newPosition = json_decode($strParameter);
-        //$this->idGamer =  (int)$newPosition->idGamer ;  
-        // конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         
         // Удаление записи из таблицы `ready`
         $query = ' DELETE FROM `ready` WHERE `user_id` = :idGamer AND  `opponent_id` is null ';
@@ -73,53 +83,48 @@ class RulingController extends \yii\base\Controller{
                 ->execute();
          $status = ( $col ) ? 'Ok' : 'error';  
          $this->sendRequest( [ 'status' => $status ] );
-         //   
+            
     }
     
     // Ф-я выбора соперника для игры --------------------------------------------------------------------------------------
     // Получает id выбранного соперника. Если ни игрок ни его выбраный противник не имеют открытых
     //  игр , то в таблице ready им заполняется поле opponent_id, в таблице game создается новая игра
+    //  Возвращает статус ok/error + message error.
     public function actionEnemySelection() {
         
          // Проверка залогинен ли юзер
          if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error message logg' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
         }
         
          // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
         $this->idEnemy = (int)$newPosition->idEnemy;
-        
-        // Временная функция для отладки. Заполнение  переменной 'idGame', 'idEnemy' . !!!!!!!!!!!!!!!!!!!
-       // $this->idGamer =  (int)$newPosition->idGamer ;  
-        // конец временных данных. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-      
+     
         // Проверка существования противника с таким id
-        if( !$this->existenceUser( $this->idEnemy  ) ){  $this->sendRequest( [ 'status' => 'error' ] );  }
+        if( !$this->existenceUser( $this->idEnemy  ) ){  $this->sendRequest( [ 'status' => 'error: idEnemy  does not exist ' ] );  }
           
         // проверка на отсутствие открытых игр (своих и потенциального противника)
         if( $this->inGame( $this->idGamer ) ||  $this->inGame(  $this->idEnemy ) ){
-                 $this->sendRequest( [ 'status' => 'error' ] );           
+                 $this->sendRequest( [ 'status' => 'error: have unfinished games ' ] );           
         }
        
         // Проверка на готовность противника с переданным id
         if( !$this->isReady( $this->idEnemy ) || !$this->isReady( $this->idGamer ) ){  
-            $this->sendRequest( [ 'status' => 'error' ] );             
+            $this->sendRequest( [ 'status' => 'error: idEnemy or  idGamer its not ready ' ] );             
         }
         
         // Проверка не играем ли сам с собой
-        if( $this->idEnemy ==  $this->idGamer ){ $this->sendRequest( [ 'status' => 'error' ] ); }
+        if( $this->idEnemy ==  $this->idGamer ){ $this->sendRequest( [ 'status' => 'error: idEnemy ==  idGamer' ] ); }
          
         // Добавление  id противников друг другу в таблицу ready
         $this->addIdEnemy( $this->idEnemy ,  $this->idGamer  );
         
         // Создание записи в таблице game  
         $this->addGame( $this->idEnemy );      
-      
-       
+           
         $this->sendRequest( [ 'status' => 'ok' ] );
-           $this->sendRequest( [  'status' => 'test', 'gamer' =>  $this->idGamer, 'enemy' => $newPosition->idEnemy  ] ); 
     }
    
     // Внутренние ф-ии ======================================================
@@ -256,4 +261,20 @@ class RulingController extends \yii\base\Controller{
                ->execute() ;
   }
   
+  //Ф-я валидации новой позиции. Возвращает true/false.
+  protected function newPositionValidate($position) {
+        
+         if ( !is_object($position) ){  return FALSE; }
+         if ( filter_var( $position->latitude , FILTER_VALIDATE_FLOAT)  === false ) {  return FALSE; }  ;
+         if ( filter_var( $position->longitude , FILTER_VALIDATE_FLOAT)  === false ) {  return FALSE; }  ;
+        // if ( filter_var( $position->accuracy , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
+        // if ( filter_var( $position->speed , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
+  
+         if ( ($position->latitude  <= 0) || ($position->latitude  >=180 ) ) {  return FALSE; }  ;
+         if ( ( $position->longitude <= 0 ) || ( $position->longitude >= 90 ) ) {  return FALSE; }  ;
+         //if (  ($position->accuracy <= 0) || ($position->accuracy >=500 )  ) {  return FALSE; }  ;
+        // if (  $position->speed   <= 0 ) {  return FALSE; }  ;
+         return TRUE; 
+      
+  } 
 }
