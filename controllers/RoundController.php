@@ -27,10 +27,11 @@ class RoundController extends \yii\base\Controller{
   
   // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   public function actionIndex() {
-     // $ob = new RulingController();
-        //$idGame  = 13;
-        $idGamer  = 2;
-        $idEnemy  = 1;
+      
+     //  Yii::$app->runAction('ruling/get-ready');
+         $idGame  = 3;
+        $idGamer  = 1;
+        $idEnemy  = 2;
        // $_SESSION['idGame'] = $idGame;
         $_SESSION['idGamer'] = $idGamer;
         $_SESSION['idEnemy'] = $idEnemy;
@@ -68,7 +69,7 @@ class RoundController extends \yii\base\Controller{
         
         // Проверка на таймаут. Если время игры закончено - закрываем игру.
         if( $this->isTimeOut( $this->startTime ) ){
-            $statusGameOver = $this->gameOver();
+           // $statusGameOver = $this->gameOver();
              $this->sendRequest( [  'status' => 'error', 'message' =>$statusGameOver ] );
         }
         
@@ -397,17 +398,17 @@ class RoundController extends \yii\base\Controller{
   protected function isTimeOut( $startTimeStr ) {
       
        $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $startTimeStr );
-       
-       // return TRUE;
-     return FALSE;
+       // if ( !is_object($dt) ){ return TRUE; }
+       $time =  time() - $dt->getTimestamp();
+       return ( $time > 1800 ) ? TRUE : FALSE ;
   }
   
   // Ф-я завершения игры.
   protected function gameOver( ) {
-     
-      return;
+     Yii::$app->runAction('ruling/stop-game');
+     return;
   }
- //=========== Ф-ии метода Get_change() ==============================================
+ //=========== Ф-ии метода Get_change() =====ruling/get-ready=========================================
  // Ф-я получения массива новых точек. Принимает id последней отображенной точки .
   // Возвращает массив [ { 'gamer' : 'me/opponent' ,'id' : id, 'latitude' : latitude , 'longitude' : longitude }, ... ] 
   //  для передачи браузеру на отрисовку 

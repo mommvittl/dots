@@ -21,12 +21,16 @@ class RulingController extends \yii\base\Controller{
          $idGamer =1;
          $idEnemy =2;
          $res = $this->existenceGame( 11, 1, 2 );
+         
+           $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $_SESSION['startTime'] );
+       $item = $dt->getTimestamp();
+       $item2 = time();
          $query = [
                         $_SESSION['idGame'] , 
                         $_SESSION['idGamer'] , 
                         $_SESSION['idEnemy'] , 
                         $_SESSION['startTime'] ,
-                  'res' => $dt
+                  'res' => $item2 - $item
                          ];
        
          return  $this->render('test' , [  'dots' =>$query  ]);
