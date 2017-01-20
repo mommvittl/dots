@@ -3,6 +3,7 @@
 namespace app\controllers;
 
 use app\models\Signup;
+use app\models\SignupForm;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
