@@ -101,7 +101,7 @@ CREATE TABLE `ready` (
 DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
-  `nick` varchar(30) NOT NULL,
+  `username` varchar(30) NOT NULL,
   `email` varchar(50) NOT NULL,
   `password` text NOT NULL,
   `game_id` int(10) UNSIGNED DEFAULT NULL,
