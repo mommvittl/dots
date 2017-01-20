@@ -10,8 +10,7 @@ $_SESSION['logg'] = TRUE;
 
 class SimulatorController  extends Controller{
     
-    public function actionSimulator() {
-    //   return $this->render('simulator');  
+    public function actionSimulator() { 
  
         $_SESSION[ 'idGamer' ] = 1 ;
         ?>
@@ -26,7 +25,7 @@ class SimulatorController  extends Controller{
  <h1>JS Test debugger</h1>
  <p><button type="button" id="startBut">Start</button><button type="button" id="readyBut">Ready</button>
  <button type="button" id="unReady">unReady</button><button type="button" id="selEnemy">selEnemy</button>
- <INPUT type="number" min="1" id="numEmemy" name="numEmemy"></input></p>
+ <INPUT type="number" min="1" id="numEmemy" name="numEmemy"></input><button type="button" id="gameOver">gameOver</button></p>
  
  <div id="YMapsID" style="width: 900px; height: 700px; margin: 0 auto; "></div>
 
@@ -66,6 +65,9 @@ unReady.onclick = unReadyCommand;
 
 var selEnemy = document.getElementById('selEnemy');
 selEnemy.onclick = selEnemyCommand; 
+
+var gameOver = document.getElementById('gameOver');
+gameOver.onclick = gameOverCommand; 
 //----------------------------------------------------------
 function getReadyCommand(){
      var theParam =  JSON.stringify( {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer } );
@@ -88,6 +90,14 @@ function selEnemyCommand(){
     var num = document.getElementById('numEmemy').value;
      var theParam =  JSON.stringify( {   'idGamer' : idGamer,  'idEnemy' : num  } );
      ajaxGet.setAjaxQuery('http://dots/ruling/enemy-selection' , theParam , viewSelEnemy , 'POST' , 'text');
+}
+function viewSelEnemy( responseXMLDocument ){
+     alert(responseXMLDocument );
+}
+// ---------------------------------------------------
+function gameOverCommand(){
+     var theParam =  JSON.stringify( {   'idGamer' : idGamer,  'idEnemy' : num  } );
+     ajaxGet.setAjaxQuery('http://dots/ruling/stop-game' , theParam , viewSelEnemy , 'POST' , 'text');
 }
 function viewSelEnemy( responseXMLDocument ){
      alert(responseXMLDocument );
@@ -337,8 +347,7 @@ function AjaxGETResponse(){
         <?php
     }
     
-    public function actionSimulator2() {
-     //  return $this->render('simulator2');   
+    public function actionSimulator2() {  
   
    $_SESSION[ 'idGamer' ] = 2 ;
         ?>
@@ -354,7 +363,7 @@ function AjaxGETResponse(){
  <h1>JS Test debugger</h1>
  <p><button type="button" id="startBut">Start</button><button type="button" id="readyBut">Ready</button>
  <button type="button" id="unReady">unReady</button><button type="button" id="selEnemy">selEnemy</button>
- <INPUT type="number" min="1" id="numEmemy" name="numEmemy"></input></p>
+ <INPUT type="number" min="1" id="numEmemy" name="numEmemy"></input><button type="button" id="gameOver">gameOver</button></p>
  
  <div id="YMapsID" style="width: 900px; height: 700px; margin: 0 auto; "></div>
 
@@ -394,6 +403,9 @@ unReady.onclick = unReadyCommand;
 
 var selEnemy = document.getElementById('selEnemy');
 selEnemy.onclick = selEnemyCommand; 
+
+var gameOver = document.getElementById('gameOver');
+gameOver.onclick = gameOverCommand; 
 //----------------------------------------------------------
 function getReadyCommand(){
      var theParam =  JSON.stringify( {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer } );
@@ -415,6 +427,15 @@ function selEnemyCommand(){
     var num = document.getElementById('numEmemy').value;
      var theParam =  JSON.stringify( {   'idGamer' : idGamer,  'idEnemy' : num  } );
      ajaxGet.setAjaxQuery('http://dots/ruling/enemy-selection' , theParam , viewSelEnemy , 'POST' , 'text');
+}
+function viewSelEnemy( responseXMLDocument ){
+     alert(responseXMLDocument );
+}
+// ---------------------------------------------------
+function gameOverCommand(){
+    alert('erererre');
+     var theParam =  JSON.stringify( {   'idGamer' : idGamer  } );
+     ajaxGet.setAjaxQuery('http://dots/ruling/stop-game' , theParam , viewSelEnemy , 'POST' , 'text');
 }
 function viewSelEnemy( responseXMLDocument ){
      alert(responseXMLDocument );

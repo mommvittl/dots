@@ -10,22 +10,26 @@ session_start();
 
 class RulingController extends \yii\base\Controller{
   
+     protected $idGame = null;
      protected $idGamer = null;
      protected $idEnemy = null;
      
      public function actionIndex() {
-         
+       
          $this->idGamer = 33;
-         $idGamer = 'sdsdd';
-         $idEnemy = null;
+         $idGame = 10;
+         $idGamer =1;
+         $idEnemy =2;
+         $res = $this->existenceGame( 11, 1, 2 );
          $query = [
                         $_SESSION['idGame'] , 
                         $_SESSION['idGamer'] , 
-                        $_SESSION['$idEnemy'] , 
-                        $_SESSION['$startTime'] 
+                        $_SESSION['idEnemy'] , 
+                        $_SESSION['startTime'] ,
+                  'res' => $dt
                          ];
        
-          return  $this->render('test' , [  'dots' =>$query ]);
+         return  $this->render('test' , [  'dots' =>$query  ]);
           
           
      }
@@ -127,6 +131,32 @@ class RulingController extends \yii\base\Controller{
         $this->sendRequest( [ 'status' => 'ok' ] );
     }
    
+    // Ф-я завершения игры. Удаляет из таблицы ready строки игроков. Определяет победителя 
+    // и корректирует таблицу game
+    public function actionStopGame() {
+       
+         // Проверка залогинен ли юзер
+         if( !$this->loggout() ){
+            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
+        }
+        
+        // Получение данных из сессии
+        if( isset($_SESSION[ 'idGame' ] ) ){ $this->idGame = (int)$_SESSION[ 'idGame' ]; }
+        if( isset($_SESSION[ 'idEnemy' ] ) ){ $this->idEnemy = (int)$_SESSION[ 'idEnemy' ]; }
+            
+        // Проверка существования игры.
+       if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ) {
+            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
+       }
+ 
+       // Удаление записей из таблицы ready
+       $this->deleteReady(  $this->idGamer, $this->idEnemy );
+       
+       // определение победителя и обновление таблицы game
+       $this->getWinner( $this->idGame );
+       
+        $this->sendRequest( [ 'status' => 'ok' ] ); 
+    }
     // Внутренние ф-ии ======================================================
     protected function sendRequest($ajaxRequest) {
         
@@ -149,6 +179,18 @@ class RulingController extends \yii\base\Controller{
             return $this->existenceUser( $this->idGamer );
         }
         return  FALSE ;
+  }
+  
+   // Ф-я проверки существования игры. Возвращает true/false.
+  // Принимает $idGame, $idGamer, $idEnemy
+  protected function existenceGame( $idGame, $idGamer, $idEnemy ) {
+      $query = ' SELECT count(*) FROM `game` WHERE `id`= :idGame and `winner_id` is NULL and ' 
+         . ' ( (  `user1_id`= :idGamer AND `user2_id` = :idEnemy ) OR '
+         . ' ( `user1_id`= :idEnemy AND `user2_id` = :idGamer ) ) ';
+       $col = Yii::$app->db->createCommand( $query )
+              ->bindValues( [ ':idGame' => $idGame , ':idGamer' => $idGamer , ':idEnemy' => $idEnemy ] )
+              ->queryScalar();
+        return ( $col  ) ? TRUE : FALSE ;
   }
   
   // Ф-я проверки существования в таблице `user` юзера с заданным id. Возвращает true/false.
@@ -196,8 +238,8 @@ class RulingController extends \yii\base\Controller{
               $startTime = $query->start_time;
               // Загружаем в сессию данные о игре
               $_SESSION['idGame'] = $idGame;
-              $_SESSION['$idEnemy'] = $idEnemy;
-              $_SESSION['$startTime'] = $startTime;                    
+              $_SESSION['idEnemy'] = $idEnemy;
+              $_SESSION['startTime'] = $startTime;                    
           }
       }
       return  [ 'opponent' => $idEnemy, 'idGame' => $idGame  ];
@@ -277,4 +319,26 @@ class RulingController extends \yii\base\Controller{
          return TRUE; 
       
   } 
+  
+  // Ф-ии метода stopGame ==========================================================
+  // Ф-я определения победителя. Записывает id победителя в таблицу game. Принимает idGame.
+  protected function getWinner( $idGame ) {
+      $query = \app\models\Game::findOne( (int)$idGame );
+      $score1 = ( $query->user1_scores ) ?  (int)$query->user1_scores : 0 ;
+      $score2 = ( $query->user2_scores ) ?  (int)$query->user2_scores : 0 ;
+      if( $score1 != $score2 ){
+          $winner = ( $score1 > $score2 ) ? $query->user1_id : $query->user2_id ;
+      }else{ $winner = 0;  }  
+      $query->winner_id  = $winner;
+      $query->update();
+      return;
+  }
+  
+  // Ф-я удаления записей из таблицы ready для участников игры
+  protected function deleteReady( $idGamer, $idEnemy ) {
+      Yii::$app->db->createCommand()->delete('ready',[ 'user_id' => $idGamer, 'opponent_id' => $idEnemy  ])->execute();
+      Yii::$app->db->createCommand()->delete('ready',[ 'user_id' => $idEnemy, 'opponent_id' => $idGamer  ])->execute();
+      return;
+  }
+  
 }

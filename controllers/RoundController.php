@@ -6,6 +6,7 @@ use app\models\User_has_points;
 use app\models\User_has_polygons;
 use app\models\Deleted_points;
 use app\models\Deleted_polygons;
+use app\controllers\RulingController;
 
 ini_set('session.use_only_cookies',true);
 session_start();
@@ -22,21 +23,26 @@ class RoundController extends \yii\base\Controller{
   protected $arrIdDeletePolygon = [];
   protected $lastDelDotId = 0;
   protected $lastDelPolygonId = 0;
-  protected $item = 0; // Заработанные в этом вызове очки
+  protected $scores = 0; // Заработанные в этом вызове очки
   
   // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   public function actionIndex() {
+     // $ob = new RulingController();
+        //$idGame  = 13;
+        $idGamer  = 2;
+        $idEnemy  = 1;
+       // $_SESSION['idGame'] = $idGame;
+        $_SESSION['idGamer'] = $idGamer;
+        $_SESSION['idEnemy'] = $idEnemy;
      
-        $idGame = 1;
-        $this->idGame = 1;
-        $idGamer = 1;
-        $this->idGamer = 1;
-        $idEnemy = 2;
-        $idPolygon = 8;
-        $lat = 49.9415902;
-        $lon = 36.3085217;
-         $radiusAccuracy = 0.00001;
-         $prevLastId = 33;
+        $res = 0;
+        $query = [
+                        'idGame' => $_SESSION['idGame'] , 
+                        'idGamer' =>  $_SESSION['idGamer'] , 
+                         'idEnemy' => $_SESSION['idEnemy'] , 
+                         'startTime' => $_SESSION['startTime'] ,
+                        'res' => $res
+                         ];
         
        
        return  $this->render('test' , [  'dots' =>$query ]);
@@ -56,10 +62,17 @@ class RoundController extends \yii\base\Controller{
         $newPosition = json_decode($strParameter);
         
         // Проверка валидности новых данных
-        if( !$this->newPositionValidate($newPosition) ){
+        if( !$this->newPositionValidate( $newPosition ) ){
              $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data' ] );
         }
-     // $this->sendRequest( [  'status' => 'test', 'message' => 'test message validate' ] );
+        
+        // Проверка на таймаут. Если время игры закончено - закрываем игру.
+        if( $this->isTimeOut( $this->startTime ) ){
+            $statusGameOver = $this->gameOver();
+             $this->sendRequest( [  'status' => 'error', 'message' =>$statusGameOver ] );
+        }
+        
+        // $this->sendRequest( [  'status' => 'test', 'message' => 'test message validate' ] );
         //Проверка новой точки на попадание в полигон    
         if( $this->inPolygons( $newPosition ) ){
             // Если попали в полигон - обрезаем хвост
@@ -72,8 +85,10 @@ class RoundController extends \yii\base\Controller{
         $repeat = $this->repeatVisit( $newPosition );
         if ( $repeat === false ){
             // точка не посещалась - сохраняем новую точку.
-            $idNewDot =  $this->addDot(  $newPosition );     
-             $this->sendRequest( [ 'status' => 'ok' ] );
+            $idNewDot =  $this->addDot(  $newPosition );
+            // добвляем игроку очки в БД
+           $this->addScores( $this->idGame, $this->idGamer, $this->scores );
+            $this->sendRequest( [ 'status' => 'ok' ] );
         }
         // Повторное посещение. Получаем массив обьектов точек ( потенциального полигона )
         // для анализа на дальнейшие действия
@@ -89,8 +104,10 @@ class RoundController extends \yii\base\Controller{
             // Длинна кольца слишком мала - стираем головные точки 
             $this->cutTail( $this->idGamer, $repeat, FALSE, TRUE );
             // Добавляем новую позицию в БД
-            $idNewDot =  $this->addDot(  $newPosition );     
-             $this->sendRequest( [ 'status' => 'ok' ] );
+            $idNewDot =  $this->addDot(  $newPosition );  
+            // добвляем игроку очки в БД
+            $this->addScores( $this->idGame, $this->idGamer, $this->scores );
+            $this->sendRequest( [ 'status' => 'ok' ] );
         }else{            
            // Длинна кольца достаточна - формируем полигон
            $idNewPolygon = $this->addPolygon( $possiblePoligon );    
@@ -107,9 +124,11 @@ class RoundController extends \yii\base\Controller{
            //Если нашли - удаляем 
            if( $arrPolyInPolygon !== false ){
                $this->delPoligonById( $arrPolyInPolygon );
-           }   
-        }           
-           $this->sendRequest( [  'status' => 'ok'  ] );  
+           } 
+           // добвляем игроку очки в БД
+           $this->addScores( $this->idGame, $this->idGamer, $this->scores );
+           $this->sendRequest( [  'status' => 'ok'  ] );
+        }                  
   }
    
   // Ф-я прердачи на браузер изменений состояния точек ----------------------------------------------------------------
@@ -161,11 +180,8 @@ class RoundController extends \yii\base\Controller{
         if ( isset($_SESSION['logg']) &&  $_SESSION['logg'] === TRUE ){
             $this->idGame =  (int)$_SESSION['idGame'];
             $this->idGamer =  (int)$_SESSION['idGamer'];
-            $this->idEnemy =  (int)$_SESSION['$idEnemy'];
-            $this->startTime = $_SESSION['$startTime'];
-            
-            //$mess = [  $this->idGame, $this->idGamer, $this->idEnemy, $this->startTime  ];
-           // $this->sendRequest( [  'status' => 'error', 'message' => $mess ] );
+            $this->idEnemy =  (int)$_SESSION['idEnemy'];
+            $this->startTime = $_SESSION['startTime'];
             
             if( !$this->existenceUser( $this->idGamer ) ){ return FALSE; }   
             if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ){ return FALSE; }
@@ -213,13 +229,14 @@ class RoundController extends \yii\base\Controller{
     // Ф-я добавления новой точки в БД. Возвращает id новой точки.
   protected function addDot($position) {
        
-         $query = ' INSERT INTO `user_has_points`  SET `user_id` = ' . $this->idGamer  ;
-         $query .= ' ,  `accuracy` = ' .  $position->accuracy . ' , `game_id` = ' .  $this->idGame;
-         $query .= ', `point` = PointFromText( "POINT( ' .  $position->latitude . ' ' .  $position->longitude . ' )"  ) ' ; 
-         $query .= ', `status` = 1 ';
-         Yii::$app->db->createCommand( $query )->execute();
-         $idNewDot = Yii::$app->db->createCommand( ' SELECT LAST_INSERT_ID() ' ) ->queryOne();
-                
+        $query = ' INSERT INTO `user_has_points`  SET `user_id` = ' . $this->idGamer  ;
+        $query .= ' ,  `accuracy` = ' .  $position->accuracy . ' , `game_id` = ' .  $this->idGame;
+        $query .= ', `point` = PointFromText( "POINT( ' .  $position->latitude . ' ' .  $position->longitude . ' )"  ) ' ; 
+        $query .= ', `status` = 1 ';
+        Yii::$app->db->createCommand( $query )->execute();
+        $idNewDot = Yii::$app->db->createCommand( ' SELECT LAST_INSERT_ID() ' ) ->queryOne();
+        
+        $this->scores++ ;// Добавление очков
         return  $idNewDot ;
   }
   
@@ -314,8 +331,7 @@ class RoundController extends \yii\base\Controller{
   // Ф-я поиска точек попавших в полигон. Пинимает id полигона и igGamer, чьи точки ищем
   // Возвращает наибольший из id всех точек, попавших в полигон
   protected function getDotsInPolygon(  $idGamer, $idPolygon ) {
-      // SELECT * FROM `user_has_points` as u, `user_has_polygons` as p WHERE u.`user_id` = '2' and u.`game_id` = '1' and u.`status` ='1' 
-      // and p.`id` = '3' and ST_Within( u.`point`, p.`polygon` ) = '1'
+      /*
       $query = User_has_points::find()
               ->select( ' u.`id` ' )
               ->from( ' `user_has_points` as u, `user_has_polygons` as p  ' )
@@ -323,10 +339,23 @@ class RoundController extends \yii\base\Controller{
                      . ' and p.`id` = :idPolygon and ST_Within( u.`point`, p.`polygon` ) = 1 ')
               ->addParams( [  ':idGame' => $this->idGame, ':idGamer' => $idGamer, ':idPolygon' => $idPolygon ] )
               ->orderBy('id DESC')->asArray()->limit(1)->one();
-     
       return  ( $query && is_array($query) ) ?  $query[ 'id' ] : false ;
+       */
+      $query = User_has_points::find()
+              ->select( ' u.`id` ' )
+              ->from( ' `user_has_points` as u, `user_has_polygons` as p  ' )
+              ->where(' u.`user_id` = :idGamer and u.`game_id` = :idGame and u.`status` = 1 '
+                     . ' and p.`id` = :idPolygon and ST_Within( u.`point`, p.`polygon` ) = 1 ')
+              ->addParams( [  ':idGame' => $this->idGame, ':idGamer' => $idGamer, ':idPolygon' => $idPolygon ] )
+              ->orderBy('id DESC')->asArray()->all();
+      if( $query && is_array($query) ){
+          $this->scores += count( $query ) * 10 ;
+         return $query[0][ 'id' ];
+      }else{ return FALSE; }    
   }
   
+  // Ф-я поиска полигонов попавших во вновь созданный полигон. 
+  // Принимает id противника и нового id полигона. Возвращает массив id полигонов или false.
   protected function getPolyInPolygon( $idGamer, $idPolygon ) {
       $query = User_has_polygons::find()
               ->select( ' `id` ' )
@@ -344,6 +373,7 @@ class RoundController extends \yii\base\Controller{
       $len = count( $arrIdPoligons );
       for ( $i = 0; $i < $len; $i++){
           $query = User_has_polygons::findOne( $arrIdPoligons[ $i ][ 'id' ]  );
+          if( $query->user_id == $this->idEnemy ){ $this->scores += 100 ; }
            $query->status = '0';
            $query->update();
            $delPoly = new \app\models\Deleted_polygons;   
@@ -352,6 +382,30 @@ class RoundController extends \yii\base\Controller{
            $delPoly->save();
       }
             
+  }
+  // Ф-я сохранения заработанных очков в БД
+  protected function addScores( $idGame, $idGamer, $scores ) {
+      $query = \app\models\Game::findOne( $idGame );
+      $columnName = ( (int)$query->user1_id == (int)$idGamer  ) ? 'user1_scores' : 'user2_scores' ;
+      $query->$columnName +=  $scores;
+      $query->update();
+      
+      return;
+  }
+  
+  // Ф-я проверки таймаута.Принимает строку со стартовым временем. Возвращает true/false.
+  protected function isTimeOut( $startTimeStr ) {
+      
+       $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $startTimeStr );
+       
+       // return TRUE;
+     return FALSE;
+  }
+  
+  // Ф-я завершения игры.
+  protected function gameOver( ) {
+     
+      return;
   }
  //=========== Ф-ии метода Get_change() ==============================================
  // Ф-я получения массива новых точек. Принимает id последней отображенной точки .
