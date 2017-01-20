@@ -74,8 +74,10 @@ CREATE TABLE `game` (
   `user1_id` int(10) UNSIGNED NOT NULL,
   `user2_id` int(10) UNSIGNED NOT NULL,
   `start_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
-  `winner_id` int(10) UNSIGNED DEFAULT NULL,
-  `scores` smallint(5) UNSIGNED DEFAULT NULL
+  `winner_id` int(10)  DEFAULT NULL,
+  `scores` smallint(5)  DEFAULT NULL,
+  `user1_scores` int(10)  DEFAULT NULL,
+  `user1_scores`  int(10)  DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
