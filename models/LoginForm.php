@@ -23,6 +23,7 @@ class LoginForm extends Model
     private $_user = false;
 
 
+
     /**
      * @return array the validation rules.
      */
@@ -56,6 +57,7 @@ class LoginForm extends Model
             else{
                 Yii::$app->session->open();
                 $_SESSION['idGamer']= $user->getId();
+                $_SESSION['logg']= true;
             }
         }
     }
