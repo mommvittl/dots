@@ -206,7 +206,7 @@ document.body.onkeydown = function(event){
 } 	
 //----------------------------------------------------
 function changePosition(){	
-	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy };
+	var parameter =[ {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy } ];
 	var theParam =  JSON.stringify( parameter );
 	ajaxPost.setAjaxQuery('http://dots/round/change-position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------
@@ -544,7 +544,7 @@ document.body.onkeydown = function(event){
 } 	
 //----------------------------------------------------
 function changePosition(){	
-	var parameter = {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy };
+	var parameter = [ {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy } ];
 	var theParam =  JSON.stringify( parameter );
 	ajaxPost.setAjaxQuery('http://dots/round/change-position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------

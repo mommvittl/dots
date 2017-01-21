@@ -29,22 +29,17 @@ class RoundController extends \yii\base\Controller{
   public function actionIndex() {
      // $ob = new RulingController();
         //$idGame  = 13;
-        $idGamer  = 2;
-        $idEnemy  = 1;
+        $idGamer  = 1;
+        $idEnemy  = 2;
        // $_SESSION['idGame'] = $idGame;
         $_SESSION['idGamer'] = $idGamer;
         $_SESSION['idEnemy'] = $idEnemy;
-     
-        $res = 0;
         $query = [
                         'idGame' => $_SESSION['idGame'] , 
                         'idGamer' =>  $_SESSION['idGamer'] , 
                          'idEnemy' => $_SESSION['idEnemy'] , 
-                         'startTime' => $_SESSION['startTime'] ,
-                        'res' => $res
+                         'startTime' => $_SESSION['startTime']                
                          ];
-        
-       
        return  $this->render('test' , [  'dots' =>$query ]);
   }
   // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -57,27 +52,43 @@ class RoundController extends \yii\base\Controller{
             $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
         }   
            
+        // Проверка на таймаут. Если время игры закончено - закрываем игру.
+        if( $this->isTimeOut( $_SESSION['startTime'] ) ){
+            $statusGameOver = $this->gameOver();
+             $this->sendRequest( [  'status' => 'error', 'message' => 'gameOver. TimeOut.' ] );
+        }
+        
         // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
-        $newPosition = json_decode($strParameter);
+        $arrNewPosition = json_decode($strParameter);
         
-        // Проверка валидности новых данных
+        if( !is_array($arrNewPosition) ){
+             $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data. Mast be array.' ] );
+        }
+        
+        // Обрабока переданных точек
+        $request = [];
+        $len = count( $arrNewPosition );
+        for( $i = 0; $i < $len; $i++){
+            $request[] = $this->gameProcess( $arrNewPosition[ $i ]  );
+        }
+        $this->sendRequest( $request );
+        
+  }
+  // ============ Ф-я обработки игрового процесса ======================================
+  protected function gameProcess( $newPosition ){
+      
+      // Проверка валидности новых данных
         if( !$this->newPositionValidate( $newPosition ) ){
-             $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data' ] );
+             return( [  'status' => 'error', 'message' => 'error: incorrect input data' ] );
         }
-        
-        // Проверка на таймаут. Если время игры закончено - закрываем игру.
-        if( $this->isTimeOut( $this->startTime ) ){
-            $statusGameOver = $this->gameOver();
-             $this->sendRequest( [  'status' => 'error', 'message' =>$statusGameOver ] );
-        }
-        
-        // $this->sendRequest( [  'status' => 'test', 'message' => 'test message validate' ] );
+         
+        // return( [  'status' => 'test', 'message' => 'test message validate' ] );
         //Проверка новой точки на попадание в полигон    
         if( $this->inPolygons( $newPosition ) ){
             // Если попали в полигон - обрезаем хвост
             $this->cutTail( $this->idGamer  );
-             $this->sendRequest( [ 'status' => 'ok' ] ); 
+             return( [ 'status' => 'ok' ] ); 
         }
         
         // Проверка на повторное посещение точки
@@ -88,13 +99,13 @@ class RoundController extends \yii\base\Controller{
             $idNewDot =  $this->addDot(  $newPosition );
             // добвляем игроку очки в БД
            $this->addScores( $this->idGame, $this->idGamer, $this->scores );
-            $this->sendRequest( [ 'status' => 'ok' ] );
+            return( [ 'status' => 'ok' ] );
         }
         // Повторное посещение. Получаем массив обьектов точек ( потенциального полигона )
         // для анализа на дальнейшие действия
         $possiblePoligon = $this->getPossiblePoligon( $repeat );
         if( !$possiblePoligon || !is_array( $possiblePoligon ) ){ 
-                 $this->sendRequest( [  'status' => 'error', 'message' => 'error message 1' ] );
+                 return( [  'status' => 'error', 'message' => 'error message 1' ] );
             }
        
         // Получаем длинну хвоста
@@ -107,7 +118,7 @@ class RoundController extends \yii\base\Controller{
             $idNewDot =  $this->addDot(  $newPosition );  
             // добвляем игроку очки в БД
             $this->addScores( $this->idGame, $this->idGamer, $this->scores );
-            $this->sendRequest( [ 'status' => 'ok' ] );
+            return( [ 'status' => 'ok' ] );
         }else{            
            // Длинна кольца достаточна - формируем полигон
            $idNewPolygon = $this->addPolygon( $possiblePoligon );    
@@ -127,10 +138,9 @@ class RoundController extends \yii\base\Controller{
            } 
            // добвляем игроку очки в БД
            $this->addScores( $this->idGame, $this->idGamer, $this->scores );
-           $this->sendRequest( [  'status' => 'ok'  ] );
+           return( [  'status' => 'ok'  ] );
         }                  
-  }
-   
+  }  
   // Ф-я прердачи на браузер изменений состояния точек ----------------------------------------------------------------
   public function actionGetChange() {
     
@@ -178,11 +188,12 @@ class RoundController extends \yii\base\Controller{
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
         if ( isset($_SESSION['logg']) &&  $_SESSION['logg'] === TRUE ){
-            $this->idGame =  (int)$_SESSION['idGame'];
-            $this->idGamer =  (int)$_SESSION['idGamer'];
-            $this->idEnemy =  (int)$_SESSION['idEnemy'];
-            $this->startTime = $_SESSION['startTime'];
-            
+            $this->idGame = ( isset($_SESSION['idGame']) ) ?  (int)$_SESSION['idGame'] : 0 ;
+            $this->idGamer = ( isset($_SESSION['idGamer']) ) ?  (int)$_SESSION['idGamer'] : 0 ;
+            $this->idEnemy = ( isset($_SESSION['idEnemy']) ) ?  (int)$_SESSION['idEnemy'] : 0 ;
+            $this->startTime = ( isset($_SESSION['startTime']) ) ?  $_SESSION['startTime'] : 0 ;
+            // $this->sendRequest( [  'status' => 'error', 'test' => $this->startTime ] );
+            if( !preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime) ) { return FALSE; }   
             if( !$this->existenceUser( $this->idGamer ) ){ return FALSE; }   
             if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ){ return FALSE; }
             return TRUE;
@@ -397,14 +408,18 @@ class RoundController extends \yii\base\Controller{
   protected function isTimeOut( $startTimeStr ) {
       
        $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $startTimeStr );
-       
+       $dt2 = new \DateTime();
+       if( !is_object($dt2) || !is_object($dt) ){ return FALSE; }
+       $time =  $dt2->getTimestamp() - $dt->getTimestamp();
+        // return $time;
+       return ( $time > 3900 ) ? $time : FALSE ;
        // return TRUE;
-     return FALSE;
+      return FALSE;
   }
   
   // Ф-я завершения игры.
   protected function gameOver( ) {
-     
+     Yii::$app->runAction( 'ruling/stop-game');
       return;
   }
  //=========== Ф-ии метода Get_change() ==============================================
