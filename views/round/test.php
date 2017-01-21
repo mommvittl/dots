@@ -2,7 +2,7 @@
 
 
 
-<h1>LLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLLL</h1>
+<h1>Состояние переменных сессии</h1>
 
 
 <br>
