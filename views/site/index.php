@@ -14,7 +14,6 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
     <div class="body-content">
 
         <div class="row">
-<<<<<<< HEAD
             <div class="col-md-8" id="mapid">Getting your position...</div>
             <div class="col-md-4">
                 <div class="row ">
@@ -24,10 +23,8 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
 <!--                    <option value="">-- select country --</option>-->
                 </select>
             </div>
-=======
 
             <div id="mapid">Getting your position...</div>
->>>>>>> 032d9cfd03467b438ef1ef7ade5585755498f7da
         </div>
         <button onclick="stopWatch()">stop watch</button>
 
