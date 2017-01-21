@@ -44,6 +44,24 @@ class RoundController extends \yii\base\Controller{
   }
   // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+  // ТЕстовы метод ----------------------------------------------------------
+  public function actionTest(){
+      $strTestParameter = file_get_contents('php://input');
+      $arrTestPosition = json_decode( $strTestParameter );
+      if( !is_array($arrTestPosition) ){     $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data. Mast be array.' ] );  }
+       $len = count( $arrTestPosition );
+        for( $i = 0; $i < $len; $i++){
+            $newDot = $arrTestPosition[ $i ];
+            $query = ' INSERT INTO `user_has_points`  SET `user_id` = 333 ' ;
+            $query .= ' ,  `accuracy` = ' .  $newDot->accuracy . ' , `game_id` = 3333 ';
+            $query .= ', `point` = PointFromText( "POINT( ' .  $newDot->latitude . ' ' .  $newDot->longitude . ' )"  ) ' ; 
+            $query .= ', `status` = 1 ';
+            Yii::$app->db->createCommand( $query )->execute();
+            
+        } 
+           $this->sendRequest( [  'status' => 'ok', 'message' => 'test' ] );
+  }
+  
   // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------  
   public function actionChangePosition() {
     
@@ -339,19 +357,9 @@ class RoundController extends \yii\base\Controller{
       return $query;
   }
   
-  // Ф-я поиска точек попавших в полигон. Пинимает id полигона и igGamer, чьи точки ищем
+  // Ф-я поиска точек попавших в полигон. Прнимает id полигона и igGamer, чьи точки ищем
   // Возвращает наибольший из id всех точек, попавших в полигон
   protected function getDotsInPolygon(  $idGamer, $idPolygon ) {
-      /*
-      $query = User_has_points::find()
-              ->select( ' u.`id` ' )
-              ->from( ' `user_has_points` as u, `user_has_polygons` as p  ' )
-              ->where(' u.`user_id` = :idGamer and u.`game_id` = :idGame and u.`status` = 1 '
-                     . ' and p.`id` = :idPolygon and ST_Within( u.`point`, p.`polygon` ) = 1 ')
-              ->addParams( [  ':idGame' => $this->idGame, ':idGamer' => $idGamer, ':idPolygon' => $idPolygon ] )
-              ->orderBy('id DESC')->asArray()->limit(1)->one();
-      return  ( $query && is_array($query) ) ?  $query[ 'id' ] : false ;
-       */
       $query = User_has_points::find()
               ->select( ' u.`id` ' )
               ->from( ' `user_has_points` as u, `user_has_polygons` as p  ' )
