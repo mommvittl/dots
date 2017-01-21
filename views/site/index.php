@@ -13,7 +13,15 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
     <div class="body-content">
 
         <div class="row">
-            <div id="mapid">Getting your position...</div>
+            <div class="col-md-8" id="mapid">Getting your position...</div>
+            <div class="col-md-4">
+                <div class="row ">
+                    <label for="players">Select opponent</label>
+                </div>
+                <select id="players" size="10" class="form-control">
+<!--                    <option value="">-- select country --</option>-->
+                </select>
+            </div>
         </div>
         <button onclick="stopWatch()">stop watch</button>
 
