@@ -319,7 +319,7 @@ function newPosition(pos) {
     var currentPoint = L.point(currentPos.latitude, currentPos.longitude);
     var lastPoint = L.point(lastDot.latitude, lastDot.longitude);
     // var distance = currentPoint.distanceTo(lastPoint);
-    var distance = distance(currentPoint, lastPoint);
+    var distance = map.distance(currentPoint, lastPoint);
     console.log(distance);
     // if (distance > lastPoint.accuracy) {
     if (true) {
