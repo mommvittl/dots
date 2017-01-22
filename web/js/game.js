@@ -142,13 +142,13 @@ function drawOpponents(data) {
         var arrOpponents = data.arrOpponents;
         var myPoint = L.point(currentPos.latitude, currentPos.longitude);
         removeMarkers();
+        $('#players').empty();
         for (var j=0; j < arrOpponents.length; j++) {
             var enemyPoint = L.point(arrOpponents[j].latitude, arrOpponents[j].longitude);
             var distance = myPoint.distanceTo(enemyPoint);
             var text = arrOpponents[j].nick + " ( " + distance + " )";
             opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude], {icon: enemyMarker})
                 .addTo(map).bindTooltip(arrOpponents[j].nick).openTooltip();
-            $('#players').empty();
             $('#players').append($('<option>', {
                 value: arrOpponents[j].id,
                 text: text
