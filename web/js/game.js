@@ -96,15 +96,16 @@ function startGame() {
     }).addTo(map);
 }
 
-function getData(){
+function getData(data){
+    console.log(data);
     if (watchID == null) {
         return false;
     }
     var lastIds = {lastDotId: lastDotId,
         lastPolygonId: lastPolygonId,
         lastDelDotId: lastDelDotId,
-        lastDelPolygonId: lastDelPolygonId,
-        idGamer: idGamer
+        lastDelPolygonId: lastDelPolygonId
+        // idGamer: idGamer
     };
     console.log(JSON.stringify(lastIds));
     $.ajax({

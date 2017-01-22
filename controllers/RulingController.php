@@ -257,7 +257,7 @@ class RulingController extends \yii\base\Controller{
       foreach( $row as $value ){
           $arrOpponents[ ] = [
                                         'id' => $value[ 'user_id' ] ,  
-                                        'nick'  => $value[ 'nick' ] , 
+                                        'nick'  => $value[ 'username' ] ,
                                         'latitude'  => $value[ 'x' ] , 
                                         'longitude'  => $value[ 'y' ] 
                                         ];

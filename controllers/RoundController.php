@@ -44,7 +44,7 @@ class RoundController extends \yii\base\Controller{
   }
   // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
-  // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------  
+  // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------
   public function actionChangePosition() {
     
        // Проверка залогинен ли юзер
@@ -227,12 +227,12 @@ class RoundController extends \yii\base\Controller{
          if ( filter_var( $position->latitude , FILTER_VALIDATE_FLOAT)  === false ) {  return FALSE; }  ;
          if ( filter_var( $position->longitude , FILTER_VALIDATE_FLOAT)  === false ) {  return FALSE; }  ;
          if ( filter_var( $position->accuracy , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
-         if ( filter_var( $position->speed , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
+//         if ( filter_var( $position->speed , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
   
          if ( ($position->latitude  <= 0) || ($position->latitude  >=180 ) ) {  return FALSE; }  ;
          if ( ( $position->longitude <= 0 ) || ( $position->longitude >= 90 ) ) {  return FALSE; }  ;
-         if (  ($position->accuracy <= 0) || ($position->accuracy >=500 )  ) {  return FALSE; }  ;
-         if (  $position->speed   <= 0 ) {  return FALSE; }  ;
+//         if (  ($position->accuracy <= 0) || ($position->accuracy >=500 )  ) {  return FALSE; }  ;
+//         if (  $position->speed   <= 0 ) {  return FALSE; }  ;
          return TRUE; 
       
   } 
