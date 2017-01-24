@@ -35,14 +35,20 @@ class RoundController extends \yii\base\Controller{
        // $_SESSION['idGame'] = $idGame;
         $_SESSION['idGamer'] = $idGamer;
         $_SESSION['idEnemy'] = $idEnemy;
-     
-        $res = 0;
+     $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $_SESSION['startTime'] );
+       // if ( !is_object($dt) ){ return TRUE; }
+     $t = time();
+       $time =   $dt->getTimestamp();
+       
+        //$time =  $dt->getTimestamp();
         $query = [
                         'idGame' => $_SESSION['idGame'] , 
                         'idGamer' =>  $_SESSION['idGamer'] , 
                          'idEnemy' => $_SESSION['idEnemy'] , 
                          'startTime' => $_SESSION['startTime'] ,
-                        'res' => $res
+                        'res' => $time,
+                        'rrr' => $t,
+                        'iii' => $t - $time
                          ];
         
        
@@ -70,7 +76,7 @@ class RoundController extends \yii\base\Controller{
         // Проверка на таймаут. Если время игры закончено - закрываем игру.
         if( $this->isTimeOut( $this->startTime ) ){
            // $statusGameOver = $this->gameOver();
-             $this->sendRequest( [  'status' => 'error', 'message' =>$statusGameOver ] );
+             $this->sendRequest( [  'status' => 'error', 'message' =>$this->isTimeOut( $this->startTime ) ] );
         }
         
         // $this->sendRequest( [  'status' => 'test', 'message' => 'test message validate' ] );
@@ -398,8 +404,9 @@ class RoundController extends \yii\base\Controller{
   protected function isTimeOut( $startTimeStr ) {
       
        $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $startTimeStr );
-       // if ( !is_object($dt) ){ return TRUE; }
+       if ( !is_object($dt) ){ return TRUE; }
        $time =  time() - $dt->getTimestamp();
+       return $time;
        return ( $time > 1800 ) ? TRUE : FALSE ;
   }
   
