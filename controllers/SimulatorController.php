@@ -983,10 +983,10 @@ function AjaxGETResponse(){
  //=============================================================================   
    public function actionSimulator4() { 
         
-        $_SESSION['idGame'] = 10;
-        $_SESSION['idGamer'] = 7;
-        $_SESSION['idEnemy'] = 6;
-        $_SESSION['startTime'] = '2017-01-21 13:16:06';
+      //  $_SESSION['idGame'] = 10;
+      //  $_SESSION['idGamer'] = 7;
+     //   $_SESSION['idEnemy'] = 6;
+      //  $_SESSION['startTime'] = '2017-01-21 13:16:06';
         $idGamer = ( isset($_SESSION['idGamer']) ) ? $_SESSION['idGamer'] : 0 ;
         $log = ( isset($_SESSION['logg']) && $_SESSION['logg'] === true ) ? "Вы залогинены" :  "Вы не залогинены"  ;
         ?>
@@ -1020,7 +1020,7 @@ var lastDelPolygonId = 0;
 
 var dots = { };
 var polygons = { };
-var collectionOpponents = false ;
+var collectionOpponents = [];
 var functionNameForMyButClick = getReadyCommand;
 
 //var timerId = setInterval( getNewCommand, 2000 );
@@ -1089,32 +1089,32 @@ function getReadyCommand(){
     ajaxGet.setAjaxQuery('/ruling/get-ready' , theParam , viewGetReady , 'POST' , 'text');
 }
 function viewGetReady( responseXMLDocument ){
+ /*   
     functionNameForMyButClick = stopReadyCommand; 
     //{ 'opponent' : 0 , 'idGame' : 0 , 'arrOpponents' :  [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ] }
     var response = JSON.parse( responseXMLDocument );
     var idEnemy = response.opponent;
     var idGame = response.idGame;
-    var arrOpponents = response.arrOpponents;
-     myMap.geoObjects.remove( collectionOpponents );
-    collectionOpponents = false;
+    var arrOpponents = response.arrOpponents;  
+     for (var i = 0; i < collectionOpponents.length){
+       myMap.geoObjects.remove( collectionOpponents[i] );  
+     }
+    collectionOpponents = [] ;
    if( idEnemy == 0 && idGame == 0 ){
-      collectionOpponents =  new ymaps.GeoObjectCollection( {}, {} );
-     var len =arrOpponents.length ;
+     var len = arrOpponents.length ;
      document.getElementById( 'informStr' ).innerHTML = " Найдено  " + len + " игроков со статусом Ready.";
      for( var i = 0; i < len; i++){
-         var dot = new ymaps.Placemark([49.9401,36.3001],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' });
-         var opponent = new ymaps.Placemark([  arrOpponents[ i ].latitude, arrOpponents[ i ].latitude  ],{  iconContent: arrOpponents[ i ].nick  }, { preset:  'islands#darkBlueStretchyIcon' });
-        myMap.geoObjects.add(  dot );
-        collectionOpponents.add( opponent );
-          alert( opponent );     
-     }
-          myMap.geoObjects.add( collectionOpponents );
-        
-      
+         var collectionOpponents[i] = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' });
+       //  var opponent = new ymaps.Placemark([  arrOpponents[ i ].latitude, arrOpponents[ i ].longitude  ],{  iconContent: arrOpponents[ i ].nick  }, { preset:  'islands#darkBlueStretchyIcon' });
+        myMap.geoObjects.add(  collectionOpponents[i] );
+      //  collectionOpponents.add( opponent );
+       
+     }   
         setTimeout(getReadyCommand, 5000  );
    }else{
        alert( 'GAME' );
    }
+   */
 }
 //------------------------------------------
 function updatePositionOpponent(){

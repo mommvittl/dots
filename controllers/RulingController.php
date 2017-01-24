@@ -16,21 +16,15 @@ class RulingController extends \yii\base\Controller{
      
      public function actionIndex() {
        
-         $this->idGamer = 33;
-         $idGame = 10;
-         $idGamer =1;
-         $idEnemy =2;
-         $res = $this->existenceGame( 11, 1, 2 );
-         
-           $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $_SESSION['startTime'] );
-       $item = $dt->getTimestamp();
-       $item2 = time();
+      //   $this->idGamer = 33;
+     //    $idGame = 10;
+      //   $idGamer =1;
+     //    $idEnemy =2;  
          $query = [
-                        $_SESSION['idGame'] , 
-                        $_SESSION['idGamer'] , 
-                        $_SESSION['idEnemy'] , 
-                        $_SESSION['startTime'] ,
-                  'res' => $item2 - $item
+                    'idGame' => $_SESSION['idGame'] , 
+                        'idGamer' =>  $_SESSION['idGamer'] , 
+                         'idEnemy' => $_SESSION['idEnemy'] , 
+                         'startTime' => $_SESSION['startTime'] 
                  ];
        
          return  $this->render('test' , [  'dots' =>$query  ]);
