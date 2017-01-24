@@ -18,6 +18,9 @@ var opponents = [];
 var opponentId = 0;
 var intervalId = null;
 var myRadius = 0;
+var simulation = false;
+var ready = false;
+var simulateInterval = null;
 
 var options = {
     enableHighAccuracy: true,
@@ -30,6 +33,21 @@ var enemyMarker = L.icon({
     iconSize: [25, 41],
     iconAnchor: [12.5, 41]
 });
+
+function simulationSwitch() {
+    simulation = true;
+        if (!map) {
+            currentPos = { latitude: 49.98986319656137, longitude: 36.229476928710945, accuracy: 40, speed: 0};
+            drawMap(currentPos);
+        } else {
+            currentPos.accuracy = 40;
+        }
+    console.log('simulation on: ' + simulation);
+    watchID = 0;
+    map.on('click', onMapClick);
+    bindKeys();
+    currentPos.accuracy = 40;
+}
 
 function test() {
     var testId = $('#testId').val();
@@ -46,8 +64,24 @@ function test() {
 var start = performance.now();
 navigator.geolocation.getCurrentPosition(drawMap);
 
+function onMapClick(e) {
+    console.log(e);
+    removeMarkers();
+    myMarker = L.marker(e.latlng).addTo(map);
+    myRadius = L.circle(e.latlng, {
+        color: 'blue',
+        fillColor: 'blue',
+        fillOpacity: 0.25,
+        radius: currentPos.accuracy
+    }).addTo(map);
+    currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
+    sendPosition();
+}
+
 function drawMap(pos) {
-    currentPos = pos.coords;
+    if (!simulation) {
+        currentPos = pos.coords;
+    }
     if (!map) {
         $('#mapid').empty();
         map = L.map('mapid', {center: [currentPos.latitude, currentPos.longitude], zoom: 12});
@@ -64,6 +98,9 @@ function drawMap(pos) {
             radius: currentPos.accuracy
         }).addTo(map);
         $('#ready').removeAttr('disabled');
+        if (simulation) {
+            map.on('click', onMapClick);
+        }
     }
     var draw = performance.now();
     console.log(currentPos.latitude + ', ' + currentPos.longitude + ', ' + currentPos.accuracy + " " + (draw-start)/1000);
@@ -71,19 +108,44 @@ function drawMap(pos) {
 }
 
 function getReady() {
-    watchID = navigator.geolocation.watchPosition(setCurrentPos, error, options);
-    console.log(watchID);
+    if (!simulation) {
+        watchID = navigator.geolocation.watchPosition(setCurrentPos, error, options);
+        console.log(watchID);
+    }
+    ready = true;
     sendPosition();
     intervalId = setInterval(sendPosition, 15000);
-    $('#ready').attr('disabled', true);
+    $('#ready').attr('onclick', 'stopReady').text('unready');
+}
+
+function stopReady() {
+    stopWatch();
+    ready = false;
+    removeMarkers();
+    clearInterval(intervalId);
+    $('#ready').attr('onclick', 'getReady').text('ready');
+}
+
+function stopGame() {
+    $.ajax({
+        type: 'POST',
+        url: "/ruling/stop-game",
+        success: location.reload(),
+        timeout: 4000
+    });
 }
 
 function startGame() {
-    stopWatch();
-    watchID = navigator.geolocation.watchPosition(newPosition, error, options);
-    console.log(watchID);
     clearInterval(intervalId);
-    intervalId = setInterval(getData, 5000);
+    if (!simulation) {
+        stopWatch();
+        watchID = navigator.geolocation.watchPosition(newPosition, error, options);
+        console.log(watchID);
+        intervalId = setInterval(getData, 5000);
+    } else {
+
+        simulateInterval = setInterval(getData, 5000);
+    }
     $('#prepare').remove();
     $('#mapid').attr('class', 'col-sm-12');
     removeMarkers();
@@ -137,14 +199,15 @@ function drawOpponents(data) {
         return false;
     }
     if ((data.status && data.status == "ok") || (data.opponent && data.idGame)) {
-        return startGame();
+        startGame();
+        return true;
     } else {
         var arrOpponents = data.arrOpponents;
-        var myPoint = L.point(currentPos.latitude, currentPos.longitude);
+        var myPoint = L.latLng(currentPos.latitude, currentPos.longitude);
         removeMarkers();
         $('#players').empty();
         for (var j=0; j < arrOpponents.length; j++) {
-            var enemyPoint = L.point(arrOpponents[j].latitude, arrOpponents[j].longitude);
+            var enemyPoint = L.latLng(arrOpponents[j].latitude, arrOpponents[j].longitude);
             var distance = myPoint.distanceTo(enemyPoint);
             var text = arrOpponents[j].nick + " ( " + distance + " )";
             opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude], {icon: enemyMarker})
@@ -209,6 +272,7 @@ function sendPosition(){
 }
 
 function drawData(data) {
+    console.log(data);
     if (data.status && data.status == "error") {
         return false;
     }
@@ -234,7 +298,7 @@ function drawData(data) {
 
 function addDots(dots) {
     for (var i = 0; i < dots.length; i++) {
-        if (dots[i].gamer = 'me') {
+        if (dots[i].gamer == 'me') {
             myDots[dots[i].id] = L.circle([dots[i].latitude, dots[i].longitude], {
                 color: 'blue',
                 fillColor: 'blue',
@@ -255,7 +319,7 @@ function addDots(dots) {
 
 function addPolygons(polygons) {
     for (var i=0; i < polygons.length; i++) {
-        if (polygons[i].gamer = 'me') {
+        if (polygons[i].gamer == 'me') {
             myPolygons[polygons[i].id] = L.polygon(polygons[i].arrDots, {
                 color: 'blue',
                 fillColor: 'blue',
@@ -296,11 +360,33 @@ function deletePolygons(polygons) {
     }
 }
 
+function bindKeys() {
+    document.body.onkeydown = function(event){
+        var key = event.keyCode;
+        switch (key){
+            case 87:
+                currentPos.latitude += 0.0001;
+                break;
+            case 83:
+                currentPos.latitude -= 0.0001;
+                break;
+            case 68:
+                currentPos.longitude += 0.0001;
+                break;
+            case 65:
+                currentPos.longitude -= 0.0001;
+                break;
+        }
+        newPosition();
+    };
+}
+
 function stopWatch() {
     console.log(watchID);
     navigator.geolocation.clearWatch(watchID);
     watchID = null;
     clearInterval(intervalId);
+    clearInterval(simulateInterval);
 }
 
 function setCurrentPos(pos) {
@@ -308,21 +394,21 @@ function setCurrentPos(pos) {
 }
 
 function newPosition(pos) {
-    currentPos = pos.coords;
-    var time = performance.now();
-    console.log(currentPos.latitude + ', ' + currentPos.longitude + ', ' + currentPos.accuracy + " " + (time-start)/1000);
-    start = performance.now();
-    if (lastDot === null) {
+    if (!simulation) {
+        currentPos = pos.coords;
+    }
+    if (lastDot == null) {
         lastDot = currentPos;
         lastDot.accuracy = -1;
     }
     var currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
     var lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
-    // var distance = currentPoint.distanceTo(lastPoint);
-    var distance = map.distance(currentPoint, lastPoint);
+    var distance = currentPoint.distanceTo(lastPoint);
+    console.log(currentPoint);
+    console.log(lastPoint);
+    // var distance = map.distance(currentPoint, lastPoint);
     console.log(distance);
-    // if (distance > lastPoint.accuracy) {
-    if (true) {
+    if (distance > lastDot.accuracy) {
         if (distance < 50) {
             point = {
                 'latitude': currentPos.latitude,
@@ -331,6 +417,7 @@ function newPosition(pos) {
                 'speed': currentPos.speed
             };
             points = [point];
+            lastDot = currentPos;
             sendPoint(points);
         } else {
             var count = parseInt(distance / 50);
@@ -345,6 +432,7 @@ function newPosition(pos) {
                 };
                 points[points.length] = point;
             }
+            lastDot = points[points.length];
             sendPoint(points);
         }
     }

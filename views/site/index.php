@@ -16,7 +16,9 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
             <button id="ready" disabled onclick="getReady()">ready</button>
             <button id="watch" onclick="stopWatch()">stop watch</button>
             <button id="test" onclick="test()">test</button>
-            <input id="testId" type="text" placeholder="enter id...">
+            <input id="testId" type="text" placeholder="enter id..." style="width: 80px">
+            <button id="simulation" onclick="simulationSwitch()">simulation</button>
+            <button id="gameover" onclick="stopGame()">game over</button>
         </div>
         <div class="row">
             <div class="col-sm-8" id="mapid">Getting your position...</div>
