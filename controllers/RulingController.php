@@ -31,7 +31,7 @@ class RulingController extends \yii\base\Controller{
                         $_SESSION['idEnemy'] , 
                         $_SESSION['startTime'] ,
                   'res' => $item2 - $item
-                         ];
+                 ];
        
          return  $this->render('test' , [  'dots' =>$query  ]);
           
@@ -253,7 +253,7 @@ class RulingController extends \yii\base\Controller{
   // [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ]
   protected function getOpponents() {
       $arrOpponents = [ ];
-      $query = 'SELECT `user_id`, X(`point`) as x, Y(`point`) as y, u.`nick`  FROM `ready`, '
+      $query = 'SELECT `user_id`, X(`point`) as x, Y(`point`) as y, u.`username`  FROM `ready`, '
               . ' `user` as u   WHERE `opponent_id` is null AND `user_id` = u.`id` '
               . 'AND `user_id` != :idGamer ' ;
       $row =  Yii::$app->db->createCommand( $query )
@@ -262,7 +262,7 @@ class RulingController extends \yii\base\Controller{
       foreach( $row as $value ){
           $arrOpponents[ ] = [
                                         'id' => $value[ 'user_id' ] ,  
-                                        'nick'  => $value[ 'nick' ] , 
+                                        'nick'  => $value[ 'username' ] ,
                                         'latitude'  => $value[ 'x' ] , 
                                         'longitude'  => $value[ 'y' ] 
                                         ];
