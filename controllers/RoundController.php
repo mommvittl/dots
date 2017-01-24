@@ -28,12 +28,12 @@ class RoundController extends \yii\base\Controller{
   // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   public function actionIndex() {
      // $ob = new RulingController();
-        //$idGame  = 13;
-        $idGamer  = 1;
-        $idEnemy  = 2;
-       // $_SESSION['idGame'] = $idGame;
+        $idGame  = 10;
+        $idGamer  = 7;
+        $idEnemy  = 6;
+      //  $_SESSION['idGame'] = $idGame;
         $_SESSION['idGamer'] = $idGamer;
-        $_SESSION['idEnemy'] = $idEnemy;
+     //   $_SESSION['idEnemy'] = $idEnemy;
         $query = [
                         'idGame' => $_SESSION['idGame'] , 
                         'idGamer' =>  $_SESSION['idGamer'] , 
@@ -44,6 +44,7 @@ class RoundController extends \yii\base\Controller{
   }
   // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
   
+
   // ТЕстовы метод ----------------------------------------------------------
   public function actionTest(){
       $strTestParameter = file_get_contents('php://input');
@@ -63,6 +64,9 @@ class RoundController extends \yii\base\Controller{
   }
   
   // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------  
+
+  // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------
+// >>>>>>> 0014488c1ea21285d6bc3a3db4ab14a1bc6088c2
   public function actionChangePosition() {
     
        // Проверка залогинен ли юзер
@@ -210,7 +214,6 @@ class RoundController extends \yii\base\Controller{
             $this->idGamer = ( isset($_SESSION['idGamer']) ) ?  (int)$_SESSION['idGamer'] : 0 ;
             $this->idEnemy = ( isset($_SESSION['idEnemy']) ) ?  (int)$_SESSION['idEnemy'] : 0 ;
             $this->startTime = ( isset($_SESSION['startTime']) ) ?  $_SESSION['startTime'] : 0 ;
-            // $this->sendRequest( [  'status' => 'error', 'test' => $this->startTime ] );
             if( !preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime) ) { return FALSE; }   
             if( !$this->existenceUser( $this->idGamer ) ){ return FALSE; }   
             if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ){ return FALSE; }
@@ -245,12 +248,12 @@ class RoundController extends \yii\base\Controller{
          if ( filter_var( $position->latitude , FILTER_VALIDATE_FLOAT)  === false ) {  return FALSE; }  ;
          if ( filter_var( $position->longitude , FILTER_VALIDATE_FLOAT)  === false ) {  return FALSE; }  ;
          if ( filter_var( $position->accuracy , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
-         if ( filter_var( $position->speed , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
+//         if ( filter_var( $position->speed , FILTER_VALIDATE_INT)  === false ) {  return FALSE; }  ;
   
          if ( ($position->latitude  <= 0) || ($position->latitude  >=180 ) ) {  return FALSE; }  ;
          if ( ( $position->longitude <= 0 ) || ( $position->longitude >= 90 ) ) {  return FALSE; }  ;
-         if (  ($position->accuracy <= 0) || ($position->accuracy >=500 )  ) {  return FALSE; }  ;
-         if (  $position->speed   <= 0 ) {  return FALSE; }  ;
+//         if (  ($position->accuracy <= 0) || ($position->accuracy >=500 )  ) {  return FALSE; }  ;
+//         if (  $position->speed   <= 0 ) {  return FALSE; }  ;
          return TRUE; 
       
   } 
@@ -336,7 +339,8 @@ class RoundController extends \yii\base\Controller{
   // 1м радиуса точности соотв 0,0000075 градусной меры
   protected function repeatVisit($position) {   
     //  $radiusAccuracy = 0.00001;  // !!!!! - написать рассчет радиуса точности
-     $radiusAccuracy = 0.0000075 * $position->accuracy;
+     $dist = ( $position->accuracy > 20 ) ?   $position->accuracy : 20 ;
+     $radiusAccuracy = 0.0000075 * $dist;
      //$radiusAccuracy = 0.000375;
      $strQuery = " SELECT `id` FROM `user_has_points` WHERE `game_id`= " . $this->idGame
         . " AND `user_id`=" . $this->idGamer . " AND  `status`='1'  AND  "
@@ -420,7 +424,7 @@ class RoundController extends \yii\base\Controller{
        if( !is_object($dt2) || !is_object($dt) ){ return FALSE; }
        $time =  $dt2->getTimestamp() - $dt->getTimestamp();
         // return $time;
-       return ( $time > 3900 ) ? $time : FALSE ;
+      // return ( $time > 13900 ) ? $time : FALSE ;
        // return TRUE;
       return FALSE;
   }
@@ -448,7 +452,8 @@ class RoundController extends \yii\base\Controller{
                         'gamer' => $gamer,
                         'id' => $value[ 'id' ],
                         'latitude' => $value[ 'X( `point` )' ] ,
-                        'longitude' => $value[ 'Y( `point` )' ]
+                        'longitude' => $value[ 'Y( `point` )' ],
+                        'accuracy' => $value['accuracy']
                         ];    
     }
     return  $dots;

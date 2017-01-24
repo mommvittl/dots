@@ -5,6 +5,9 @@ namespace app\models;
 use Yii;
 use yii\base\Model;
 
+
+
+
 /**
  * LoginForm is the model behind the login form.
  *
@@ -18,6 +21,7 @@ class LoginForm extends Model
     public $rememberMe = true;
 
     private $_user = false;
+
 
 
     /**
@@ -49,6 +53,11 @@ class LoginForm extends Model
 
             if (!$user || !$user->validatePassword($this->password)) {
                 $this->addError($attribute, 'Incorrect username or password.');
+            }
+            else{
+                Yii::$app->session->open();
+                $_SESSION['idGamer']= $user->getId();
+                $_SESSION['logg']= true;
             }
         }
     }

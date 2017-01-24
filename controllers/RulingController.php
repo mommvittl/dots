@@ -21,10 +21,10 @@ class RulingController extends \yii\base\Controller{
          $idGamer =1;
          $idEnemy =2;  
          $query = [
-                        $_SESSION['idGame'] , 
-                        $_SESSION['idGamer'] , 
-                        $_SESSION['idEnemy'] , 
-                        $_SESSION['startTime'] ,
+                        'idGame' => $_SESSION['idGame'] , 
+                         'idGamer' =>  $_SESSION['idGamer'] , 
+                         'idEnemy' =>  $_SESSION['idEnemy'] , 
+                          'startTime' => $_SESSION['startTime'] ,
                   'res' => $res
                          ];
        
@@ -257,7 +257,7 @@ class RulingController extends \yii\base\Controller{
       foreach( $row as $value ){
           $arrOpponents[ ] = [
                                         'id' => $value[ 'user_id' ] ,  
-                                        'nick'  => $value[ 'nick' ] , 
+                                        'nick'  => $value[ 'username' ] ,
                                         'latitude'  => $value[ 'x' ] , 
                                         'longitude'  => $value[ 'y' ] 
                                         ];

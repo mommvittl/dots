@@ -117,3 +117,7 @@ a.desc:after {
 #mapid {
     height: 500px;
 }
+
+#players {
+    width: 100%;
+}
