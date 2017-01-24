@@ -35,6 +35,9 @@ class Signup extends Model
         $user->email = $this->email;
         $user->password = md5($this->password);
         $user->save();
+        Yii::$app->session->open();
+        $_SESSION['idGamer']= $user->getId();
+        $_SESSION['logg']= true;
       // $_SESSION['idGamer']= $_SESSION["__id"];
         return Yii::$app->user->login($this->getUser(), $this->rememberMe ? 3600*24*30 : 0);
 
