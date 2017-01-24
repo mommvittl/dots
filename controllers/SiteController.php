@@ -14,8 +14,10 @@ use app\models\ContactForm;
 //ini_set('session.use_only_cookies',true);
 //session_start();
 
+
 class SiteController extends Controller
 {
+
 
     /**
      * @inheritdoc
