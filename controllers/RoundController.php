@@ -444,12 +444,12 @@ class RoundController extends \yii\base\Controller{
   protected function isTimeOut( $startTimeStr ) {
       
        $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $startTimeStr );
-<<<<<<< HEAD
+
        if ( !is_object($dt) ){ return TRUE; }
        $time =  time() - $dt->getTimestamp();
        return $time;
        return ( $time > 1800 ) ? TRUE : FALSE ;
-=======
+
        $dt2 = new \DateTime();
        if( !is_object($dt2) || !is_object($dt) ){ return FALSE; }
        $time =  $dt2->getTimestamp() - $dt->getTimestamp();
@@ -457,18 +457,13 @@ class RoundController extends \yii\base\Controller{
       // return ( $time > 13900 ) ? $time : FALSE ;
        // return TRUE;
       return FALSE;
->>>>>>> 6f4f49644daaaf3e6d3725d0456e331374ea142b
+
   }
   
   // Ф-я завершения игры.
   protected function gameOver( ) {
-<<<<<<< HEAD
      Yii::$app->runAction('ruling/stop-game');
      return;
-=======
-     Yii::$app->runAction( 'ruling/stop-game');
-      return;
->>>>>>> 6f4f49644daaaf3e6d3725d0456e331374ea142b
   }
  //=========== Ф-ии метода Get_change() =====ruling/get-ready=========================================
  // Ф-я получения массива новых точек. Принимает id последней отображенной точки .
@@ -523,7 +518,7 @@ class RoundController extends \yii\base\Controller{
   // возвращает массив с коорд.точек
   protected function getDotsOfPolygon( $srtPolygon ) {
       $arrDots = [ ];
-      $arrMatches;
+      $arrMatches = [];
       $col = preg_match_all('/([0-9]{1,3}\.[0-9]+) ([0-9]{1,3}\.[0-9]+)/', $srtPolygon, $arrMatches);
       for( $i = 0; $i < $col; $i++ ){
           $arrDots[ ] = [  'latitude' => $arrMatches[ 1 ][ $i ] , 'longitude' => $arrMatches[ 2 ][ $i ]   ];
