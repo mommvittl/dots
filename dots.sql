@@ -108,8 +108,8 @@ CREATE TABLE `user` (
   `game_id` int(10) UNSIGNED DEFAULT NULL,
   `scores` smallint(5) UNSIGNED DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
-  `auth_key` varchar(32) DEFAULT NULL,
-  `access_token` varchar(32) DEFAULT NULL
+  `authKey` varchar(32) DEFAULT NULL,
+  `accessToken` varchar(32) DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
