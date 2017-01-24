@@ -12,10 +12,12 @@ use app\models\LoginForm;
 use app\models\ContactForm;
 
 //ini_set('session.use_only_cookies',true);
-//session_start();
+session_start();
+
 
 class SiteController extends Controller
 {
+
 
     /**
      * @inheritdoc

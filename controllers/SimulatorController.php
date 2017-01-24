@@ -1089,33 +1089,43 @@ function getReadyCommand(){
     ajaxGet.setAjaxQuery('/ruling/get-ready' , theParam , viewGetReady , 'POST' , 'text');
 }
 function viewGetReady( responseXMLDocument ){
- /*   
+    
     functionNameForMyButClick = stopReadyCommand; 
     //{ 'opponent' : 0 , 'idGame' : 0 , 'arrOpponents' :  [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ] }
     var response = JSON.parse( responseXMLDocument );
     var idEnemy = response.opponent;
     var idGame = response.idGame;
-    var arrOpponents = response.arrOpponents;  
-     for (var i = 0; i < collectionOpponents.length){
+    var arrOpponents = response.arrOpponents; 
+   
+     for (var i = 0; i < collectionOpponents.length; i++){
        myMap.geoObjects.remove( collectionOpponents[i] );  
      }
-    collectionOpponents = [] ;
-   if( idEnemy == 0 && idGame == 0 ){
+    collectionOpponents = [] ;      
+   if( idEnemy == 0 && idGame == 0 ){      
      var len = arrOpponents.length ;
-     document.getElementById( 'informStr' ).innerHTML = " Найдено  " + len + " игроков со статусом Ready.";
+     document.getElementById( 'informStr' ).innerHTML = " Найдено  " + len + " игроков со статусом Ready.";      
      for( var i = 0; i < len; i++){
-         var collectionOpponents[i] = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' });
-       //  var opponent = new ymaps.Placemark([  arrOpponents[ i ].latitude, arrOpponents[ i ].longitude  ],{  iconContent: arrOpponents[ i ].nick  }, { preset:  'islands#darkBlueStretchyIcon' });
-        myMap.geoObjects.add(  collectionOpponents[i] );
-      //  collectionOpponents.add( opponent );
-       
+      var ddt = {
+          nic : arrOpponents[ i ].nick;
+          dot : new ymaps.Placemark([ arrOpponents[ i ].latitude , arrOpponents[ i ].longitude ],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' }); 
+      }   
+     collectionOpponents[i] =  ddt; 
+     collectionOpponents[i].events.add('click', function ( numm ) { alert('О, событие!' + numm );} , ddt  );
+   
+
+     myMap.geoObjects.add(  collectionOpponents[i].dot );     
      }   
-        setTimeout(getReadyCommand, 5000  );
+     
+    setTimeout(getReadyCommand, 5000  );
    }else{
-       alert( 'GAME' );
+     for (var i = 0; i < collectionOpponents.length; i++){
+       myMap.geoObjects.remove( collectionOpponents[i].dot );  
+     }
+    document.getElementById( 'informStr' ).innerHTML = " Game Start: " + idEnemy + " Противник: " + idGame;   
    }
-   */
+ 
 }
+
 //------------------------------------------
 function updatePositionOpponent(){
     
