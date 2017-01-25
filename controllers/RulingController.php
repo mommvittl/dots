@@ -144,7 +144,7 @@ class RulingController extends \yii\base\Controller{
             
         // Проверка существования игры.
        if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ) {
-            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied 2 ' ] );
        }
  
        // Удаление записей из таблицы ready

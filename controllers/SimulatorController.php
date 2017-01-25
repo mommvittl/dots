@@ -81,7 +81,7 @@ function changePosition(){
 }
 
 function viewNewPosition( responseXMLDocument ){
-        //        alert(responseXMLDocument );
+                alert(responseXMLDocument );
                 console.log( responseXMLDocument );
 	var response = JSON.parse( responseXMLDocument );
    
@@ -115,7 +115,7 @@ function getNewCommand(){
     ajaxGet.setAjaxQuery('/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
-   //  alert(responseXMLDocument );
+    alert(responseXMLDocument );
     var response = JSON.parse( responseXMLDocument );
     viewAddDots( response );
     viewAddPolygons( response );
@@ -641,7 +641,7 @@ function AjaxGETResponse(){
     
      public function actionSimulator3() {  
   
-   $_SESSION[ 'idGamer' ] = 2 ;
+         var_dump( $_SESSION );
         ?>
         
         <!DOCTYPE html>
@@ -818,16 +818,16 @@ document.body.onkeydown = function(event){
 	var key = event.keyCode;
 	switch (key){
 		case 38:
-			latitude = latitude + 0.0001 ;
+			latitude = latitude + 0.0003 ;
 			break;
 		case 40:
-			latitude = latitude - 0.0001;
+			latitude = latitude - 0.0003;
 			break;
 		case 39:
-			longitude  = longitude + 0.0001;
+			longitude  = longitude + 0.0003;
 			break;
 		case 37:
-			longitude  = longitude - 0.0001 ;
+			longitude  = longitude - 0.0003 ;
 			break;
 		default :
 			return false;
@@ -1101,25 +1101,24 @@ function viewGetReady( responseXMLDocument ){
        myMap.geoObjects.remove( collectionOpponents[i] );  
      }
     collectionOpponents = [] ;      
-   if( idEnemy == 0 && idGame == 0 ){      
+   if( idEnemy == 0 && idGame == 0 ){ 
+     var storage = ymaps.geoQuery();
      var len = arrOpponents.length ;
      document.getElementById( 'informStr' ).innerHTML = " Найдено  " + len + " игроков со статусом Ready.";      
      for( var i = 0; i < len; i++){
-      var ddt = {
-          nic : arrOpponents[ i ].nick;
-          dot : new ymaps.Placemark([ arrOpponents[ i ].latitude , arrOpponents[ i ].longitude ],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' }); 
-      }   
-     collectionOpponents[i] =  ddt; 
-     collectionOpponents[i].events.add('click', function ( numm ) { alert('О, событие!' + numm );} , ddt  );
-   
-
-     myMap.geoObjects.add(  collectionOpponents[i].dot );     
+       var dott = new ymaps.Placemark([ arrOpponents[ i ].latitude , arrOpponents[ i ].longitude ],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' }) ;
+       dott.events.add('click', updatePositionOpponent.bind( arrOpponents[ i ] , arrOpponents[ i ].nick  )   );
+      storage.add( dott ).addToMap(myMap); 
+      
+  //    collectionOpponents[i] =   new ymaps.Placemark([ arrOpponents[ i ].latitude , arrOpponents[ i ].longitude ],{ iconContent : arrOpponents[ i ].nick }, { preset:  'islands#darkBlueStretchyIcon' }) ;
+//      collectionOpponents[i].events.add('click', updatePositionOpponent.bind( arrOpponents[ i ] , arrOpponents[ i ].nick  )   );
+  //    myMap.geoObjects.add(  collectionOpponents[i] );     
+       
      }   
-     
     setTimeout(getReadyCommand, 5000  );
    }else{
      for (var i = 0; i < collectionOpponents.length; i++){
-       myMap.geoObjects.remove( collectionOpponents[i].dot );  
+       myMap.geoObjects.remove( collectionOpponents[i] );  
      }
     document.getElementById( 'informStr' ).innerHTML = " Game Start: " + idEnemy + " Противник: " + idGame;   
    }
@@ -1127,8 +1126,11 @@ function viewGetReady( responseXMLDocument ){
 }
 
 //------------------------------------------
-function updatePositionOpponent(){
-    
+function updatePositionOpponent(ar1,ar2){
+    alert( " Click --- click " );
+     for (var i = 0; i < arguments.length; i++) {
+     alert( "Привет, " + arguments[i] );
+  }
 }
 //----------------------------------------
 function stopReadyCommand(){

@@ -87,18 +87,21 @@ class RoundController extends \yii\base\Controller{
 
   // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------
   public function actionChangePosition() {
-    
+   
+      
        // Проверка залогинен ли юзер
          if( !$this->loggout() ){
-            $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied 1 1 ' ] );
         }   
-           
+     
+    
         // Проверка на таймаут. Если время игры закончено - закрываем игру.
         if( $this->isTimeOut( $_SESSION['startTime'] ) ){
             $statusGameOver = $this->gameOver();
              $this->sendRequest( [  'status' => 'error', 'message' => 'gameOver. TimeOut.' ] );
         }
-        
+   
+       
         // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $arrNewPosition = json_decode($strParameter);
@@ -106,12 +109,7 @@ class RoundController extends \yii\base\Controller{
         if( !is_array($arrNewPosition) ){
              $this->sendRequest( [  'status' => 'error', 'message' => 'error: incorrect input data. Mast be array.' ] );
         }
-        
-        // Проверка на таймаут. Если время игры закончено - закрываем игру.
-        if( $this->isTimeOut( $this->startTime ) ){
-           // $statusGameOver = $this->gameOver();
-             $this->sendRequest( [  'status' => 'error', 'message' =>$this->isTimeOut( $this->startTime ) ] );
-        }     
+  
         // Обрабока переданных точек
         $request = [];
         $len = count( $arrNewPosition );
@@ -123,23 +121,23 @@ class RoundController extends \yii\base\Controller{
   }
   // ============ Ф-я обработки игрового процесса ======================================
   protected function gameProcess( $newPosition ){
-      
+    
       // Проверка валидности новых данных
         if( !$this->newPositionValidate( $newPosition ) ){
              return( [  'status' => 'error', 'message' => 'error: incorrect input data' ] );
         }
-         
-        // return( [  'status' => 'test', 'message' => 'test message validate' ] );
+       
         //Проверка новой точки на попадание в полигон    
         if( $this->inPolygons( $newPosition ) ){
             // Если попали в полигон - обрезаем хвост
             $this->cutTail( $this->idGamer  );
              return( [ 'status' => 'ok' ] ); 
         }
-        
+         
         // Проверка на повторное посещение точки
         // В $repeat - id точки из хвоста в которой произошло повтор
         $repeat = $this->repeatVisit( $newPosition );
+              
         if ( $repeat === false ){
             // точка не посещалась - сохраняем новую точку.
             $idNewDot =  $this->addDot(  $newPosition );
@@ -362,15 +360,19 @@ class RoundController extends \yii\base\Controller{
   // !!!!!! - пререписать для учета радиуса точности - !!!!!!!
   // 1м радиуса точности соотв 0,0000075 градусной меры
   protected function repeatVisit($position) {   
+ 
     //  $radiusAccuracy = 0.00001;  // !!!!! - написать рассчет радиуса точности
-     $dist = ( $position->accuracy > 20 ) ?   $position->accuracy : 20 ;
+     $dist = ( $position->accuracy > 20 ) ?   $position->accuracy : 20 ;    
      $radiusAccuracy = 0.0000075 * $dist;
      //$radiusAccuracy = 0.000375;
      $strQuery = " SELECT `id` FROM `user_has_points` WHERE `game_id`= " . $this->idGame
         . " AND `user_id`=" . $this->idGamer . " AND  `status`='1'  AND  "
         . " ST_Distance( `point`, PointFromText('POINT(" . $position->latitude . " " . $position->longitude .  ")')) "
-             . " < "  . $radiusAccuracy   . " ORDER BY 'id' LIMIT 1 ";     
+             . " < "  . $radiusAccuracy   . " ORDER BY 'id' LIMIT 1 ";   
+    
+    
          $query = Yii::$app->db->createCommand( $strQuery  )->queryOne();
+         
         return ( $query === FALSE) ? FALSE : $query[ 'id' ] ;
   }
   
@@ -444,17 +446,11 @@ class RoundController extends \yii\base\Controller{
   protected function isTimeOut( $startTimeStr ) {
       
        $dt = \DateTime::createFromFormat( "Y-m-d H:i:s", $startTimeStr );
-
-       if ( !is_object($dt) ){ return TRUE; }
-       $time =  time() - $dt->getTimestamp();
-       return $time;
-       return ( $time > 1800 ) ? TRUE : FALSE ;
-
        $dt2 = new \DateTime();
        if( !is_object($dt2) || !is_object($dt) ){ return FALSE; }
        $time =  $dt2->getTimestamp() - $dt->getTimestamp();
         // return $time;
-      // return ( $time > 13900 ) ? $time : FALSE ;
+     return ( $time > 113900 ) ? TRUE : FALSE ;
        // return TRUE;
       return FALSE;
 
