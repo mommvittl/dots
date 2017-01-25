@@ -12,10 +12,10 @@ class SimulatorController  extends Controller{
     
     public function actionSimulator() { 
         
-        $_SESSION['idGame'] = 10;
+        $_SESSION['idGame'] = 2;
         $_SESSION['idGamer'] = 7;
         $_SESSION['idEnemy'] = 6;
-        $_SESSION['startTime'] = '2017-01-21 13:16:06';
+        $_SESSION['startTime'] = '2017-01-25 13:16:06';
         ?>
         <!DOCTYPE html>
 <HTML>
@@ -333,10 +333,10 @@ function AjaxGETResponse(){
     public function actionSimulator2() {  
  
        
-        $_SESSION['idGame'] = 10;
+        $_SESSION['idGame'] = 2;
         $_SESSION['idGamer'] = 6;
         $_SESSION['idEnemy'] = 7;
-        $_SESSION['startTime'] = '2017-01-21 13:16:06';
+        $_SESSION['startTime'] = '2017-01-25 13:16:06';
         ?>
         <!DOCTYPE html>
 <HTML>
@@ -709,7 +709,7 @@ function viewGetReady( responseXMLDocument ){
 // ---------------------------------------------------
 function unReadyCommand(){
      var theParam =  JSON.stringify( {  'idGamer' : idGamer } );
-     ajaxGet.setAjaxQuery('http://dots/ruling/stop-ready' , theParam , viewStopReady , 'POST' , 'text');
+     ajaxGet.setAjaxQuery('/ruling/stop-ready' , theParam , viewStopReady , 'POST' , 'text');
 }
 function viewStopReady( responseXMLDocument ){
      alert(responseXMLDocument );
@@ -718,7 +718,7 @@ function viewStopReady( responseXMLDocument ){
 function selEnemyCommand(){
     var num = document.getElementById('numEmemy').value;
      var theParam =  JSON.stringify( {   'idGamer' : idGamer,  'idEnemy' : num  } );
-     ajaxGet.setAjaxQuery('http://dots/ruling/enemy-selection' , theParam , viewSelEnemy , 'POST' , 'text');
+     ajaxGet.setAjaxQuery('/ruling/enemy-selection' , theParam , viewSelEnemy , 'POST' , 'text');
 }
 function viewSelEnemy( responseXMLDocument ){
      alert(responseXMLDocument );
@@ -727,7 +727,7 @@ function viewSelEnemy( responseXMLDocument ){
 function gameOverCommand(){
     alert('erererre');
      var theParam =  JSON.stringify( {   'idGamer' : idGamer  } );
-     ajaxGet.setAjaxQuery('http://dots/ruling/stop-game' , theParam , viewSelEnemy , 'POST' , 'text');
+     ajaxGet.setAjaxQuery('/ruling/stop-game' , theParam , viewSelEnemy , 'POST' , 'text');
 }
 function viewSelEnemy( responseXMLDocument ){
      alert(responseXMLDocument );
@@ -735,7 +735,7 @@ function viewSelEnemy( responseXMLDocument ){
 //----------------------------------------------------
 function getNewCommand(){
     var theParam =  JSON.stringify( { 'lastDotId' : lastDotId, 'lastPolygonId' : lastPolygonId, 'lastDelDotId' : lastDelDotId, 'lastDelPolygonId' : lastDelPolygonId, 'idGamer' : idGamer } );
-    ajaxGet.setAjaxQuery('http://dots/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
+    ajaxGet.setAjaxQuery('/round/get-change' , theParam , getResponseScript , 'POST' , 'text');
 }
 function getResponseScript( responseXMLDocument ){
     alert(responseXMLDocument );
@@ -838,7 +838,7 @@ document.body.onkeydown = function(event){
 function changePosition(){	
 	var parameter = [ {   'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed, 'idGamer' : idGamer, 'idEnemy' : idEnemy } ];
 	var theParam =  JSON.stringify( parameter );
-	ajaxPost.setAjaxQuery('http://dots/round/change-position' , theParam , viewNewPosition , 'POST' , 'text');
+	ajaxPost.setAjaxQuery('/round/change-position' , theParam , viewNewPosition , 'POST' , 'text');
 	//--------------------------
 	myPlacemark.editor.startEditing();
 	myPlacemark.geometry.setCoordinates( [latitude , longitude] );

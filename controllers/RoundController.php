@@ -96,7 +96,7 @@ class RoundController extends \yii\base\Controller{
      
     
         // Проверка на таймаут. Если время игры закончено - закрываем игру.
-        if( $this->isTimeOut( $_SESSION['startTime'] ) ){
+        if( $this->isTimeOut( $this->startTime ) ){
             $statusGameOver = $this->gameOver();
              $this->sendRequest( [  'status' => 'error', 'message' => 'gameOver. TimeOut.' ] );
         }
@@ -231,11 +231,13 @@ class RoundController extends \yii\base\Controller{
     //Ф-я проверки залогинености пользователя. Возвращает true/false.
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
-        if ( isset($_SESSION['logg']) &&  $_SESSION['logg'] === TRUE ){
-            $this->idGame = ( isset($_SESSION['idGame']) ) ?  (int)$_SESSION['idGame'] : 0 ;
-            $this->idGamer = ( isset($_SESSION['idGamer']) ) ?  (int)$_SESSION['idGamer'] : 0 ;
-            $this->idEnemy = ( isset($_SESSION['idEnemy']) ) ?  (int)$_SESSION['idEnemy'] : 0 ;
-            $this->startTime = ( isset($_SESSION['startTime']) ) ?  $_SESSION['startTime'] : 0 ;
+        $session = Yii::$app->session;
+        if ( !$session->isActive ){ return FALSE; }
+        if ( isset( $session['logg']) &&   $session['logg'] === TRUE ){
+            $this->idGame = ( isset( $session['idGame']) ) ?  (int) $session['idGame'] : 0 ;
+            $this->idGamer = ( isset( $session['idGamer']) ) ?  (int) $session['idGamer'] : 0 ;
+            $this->idEnemy = ( isset( $session['idEnemy']) ) ?  (int) $session['idEnemy'] : 0 ;
+            $this->startTime = ( isset( $session['startTime']) ) ?   $session['startTime'] : 0 ;
             if( !preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime) ) { return FALSE; }   
             if( !$this->existenceUser( $this->idGamer ) ){ return FALSE; }   
             if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ){ return FALSE; }

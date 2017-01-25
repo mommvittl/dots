@@ -139,8 +139,9 @@ class RulingController extends \yii\base\Controller{
         }
         
         // Получение данных из сессии
-        if( isset($_SESSION[ 'idGame' ] ) ){ $this->idGame = (int)$_SESSION[ 'idGame' ]; }
-        if( isset($_SESSION[ 'idEnemy' ] ) ){ $this->idEnemy = (int)$_SESSION[ 'idEnemy' ]; }
+        $session = Yii::$app->session;
+        if( isset($session[ 'idGame' ] ) ){ $this->idGame = (int)$session[ 'idGame' ]; }
+        if( isset($session[ 'idEnemy' ] ) ){ $this->idEnemy = (int)$session[ 'idEnemy' ]; }
             
         // Проверка существования игры.
        if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ) {
@@ -172,8 +173,10 @@ class RulingController extends \yii\base\Controller{
     //Ф-я проверки залогинености пользователя. Возвращает true/false.
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
-        if ( isset($_SESSION['logg']) &&  $_SESSION['logg'] === TRUE ){
-            $this->idGamer = (int)$_SESSION['idGamer'];   
+         $session = Yii::$app->session;
+        if ( !$session->isActive ){ return FALSE; }
+        if ( isset($session['logg']) &&  $session['logg'] === TRUE ){
+            $this->idGamer = (int)$session['idGamer'];   
             return $this->existenceUser( $this->idGamer );
         }
         return  FALSE ;
@@ -235,9 +238,10 @@ class RulingController extends \yii\base\Controller{
               $idGame = $query->id;
               $startTime = $query->start_time;
               // Загружаем в сессию данные о игре
-              $_SESSION['idGame'] = $idGame;
-              $_SESSION['idEnemy'] = $idEnemy;
-              $_SESSION['startTime'] = $startTime;                    
+              $session = Yii::$app->session;
+              $session['idGame'] = $idGame;
+              $session['idEnemy'] = $idEnemy;
+              $session['startTime'] = $startTime;                    
           }
       }
       return  [ 'opponent' => $idEnemy, 'idGame' => $idGame  ];
