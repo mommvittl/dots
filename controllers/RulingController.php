@@ -7,13 +7,15 @@ use Yii;
 
 ini_set('session.use_only_cookies',true);
 session_start();
+// if (!isset($_SESSION)) { session_start(); }
 
 class RulingController extends \yii\base\Controller{
   
      protected $idGame = null;
      protected $idGamer = null;
      protected $idEnemy = null;
-     
+     protected $session;
+   
      public function actionIndex() {
        
       //   $this->idGamer = 33;
@@ -42,7 +44,11 @@ class RulingController extends \yii\base\Controller{
     // idGame. В сессии сохраняются $idGame, $idEnemy, $startTime - id игрока , его противника и 
     // стартовое время игры. Игра стартовала. Можно отправлять точки на обработку и получать данные
     public function actionGetReady() {
-      
+        $this->session = Yii::$app->session;
+        if (!$this->session->isActive) {
+              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
+        }
+        
         // Проверка залогинен ли юзер
          if( !$this->loggout() ){
             $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
@@ -72,6 +78,10 @@ class RulingController extends \yii\base\Controller{
     // Удаляет запись из таблицы ready пользователя с id, полученным из сессии, если у него еще
     // нет оппонента( т.е. поле `opponent_id` -  is null )
     public function actionStopReady() {
+        $this->session = Yii::$app->session;
+        if (!$this->session->isActive) {
+              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
+        }
         
          // Проверка залогинен ли юзер
          if( !$this->loggout() ){
@@ -93,6 +103,10 @@ class RulingController extends \yii\base\Controller{
     //  игр , то в таблице ready им заполняется поле opponent_id, в таблице game создается новая игра
     //  Возвращает статус ok/error + message error.
     public function actionEnemySelection() {
+        $this->session = Yii::$app->session;
+        if (!$this->session->isActive) {
+              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
+        }
         
          // Проверка залогинен ли юзер
          if( !$this->loggout() ){
@@ -132,19 +146,24 @@ class RulingController extends \yii\base\Controller{
     // Ф-я завершения игры. Удаляет из таблицы ready строки игроков. Определяет победителя 
     // и корректирует таблицу game
     public function actionStopGame() {
-       
+        $this->session = Yii::$app->session;
+        if (!$this->session->isActive) {
+              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
+        }
+        
          // Проверка залогинен ли юзер
          if( !$this->loggout() ){
             $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
         }
         
         // Получение данных из сессии
-        if( isset($_SESSION[ 'idGame' ] ) ){ $this->idGame = (int)$_SESSION[ 'idGame' ]; }
-        if( isset($_SESSION[ 'idEnemy' ] ) ){ $this->idEnemy = (int)$_SESSION[ 'idEnemy' ]; }
+       
+        if( isset( $this->session[ 'idGame' ] ) ){ $this->idGame = (int) $this->session[ 'idGame' ]; }
+        if( isset( $this->session[ 'idEnemy' ] ) ){ $this->idEnemy = (int) $this->session[ 'idEnemy' ]; }
             
         // Проверка существования игры.
        if( !$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy) ) {
-            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
+            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied 2 ' ] );
        }
  
        // Удаление записей из таблицы ready
@@ -154,6 +173,18 @@ class RulingController extends \yii\base\Controller{
        $this->getWinner( $this->idGame );
        
         $this->sendRequest( [ 'status' => 'ok' ] ); 
+    }
+    
+    // Ф-я удаления переменных игры из сессии. Удаляет idEnemy,idGame,startTime
+    public function actionRemoveSession() {
+        $this->session = Yii::$app->session;
+        if (!$this->session->isActive) {
+              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
+        }
+        if( isset( $this->session[ 'idEnemy' ] ) ) { unset($this->session['idEnemy']); }
+        if( isset( $this->session[ 'idGame' ] ) ) { unset($this->session['idGame']); }
+        if( isset( $this->session[ 'startTime' ] ) ) { unset($this->session['startTime']); }
+        $this->sendRequest( ['status' => 'ok'] );
     }
     // Внутренние ф-ии ======================================================
     protected function sendRequest($ajaxRequest) {
@@ -172,8 +203,8 @@ class RulingController extends \yii\base\Controller{
     //Ф-я проверки залогинености пользователя. Возвращает true/false.
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
-        if ( isset($_SESSION['logg']) &&  $_SESSION['logg'] === TRUE ){
-            $this->idGamer = (int)$_SESSION['idGamer'];   
+        if ( isset( $this->session['logg']) &&   $this->session['logg'] === TRUE ){
+            $this->idGamer = (int) $this->session['idGamer'];   
             return $this->existenceUser( $this->idGamer );
         }
         return  FALSE ;
@@ -206,6 +237,7 @@ class RulingController extends \yii\base\Controller{
   protected function updateReady( $position ) {
       $idEnemy = 0;
       $idGame = 0;
+      $enemyNic = '';
       $row = \app\models\Ready::find()
               ->where(' `user_id` = :idGamer ')
               ->addParams( [ ':idGamer' => $this->idGamer  ] )
@@ -234,13 +266,17 @@ class RulingController extends \yii\base\Controller{
                        ->one();
               $idGame = $query->id;
               $startTime = $query->start_time;
+              $query = 'SELECT `username` FROM `user` WHERE `id` = :idEnemy ';
+              $enemyNic = Yii::$app->db->createCommand( $query )
+                       ->bindValues( [  ':idEnemy' => $idEnemy ] )  
+                       ->queryScalar();
               // Загружаем в сессию данные о игре
-              $_SESSION['idGame'] = $idGame;
-              $_SESSION['idEnemy'] = $idEnemy;
-              $_SESSION['startTime'] = $startTime;                    
+               $this->session['idGame'] = $idGame;
+               $this->session['idEnemy'] = $idEnemy;
+               $this->session['startTime'] = $startTime;                    
           }
       }
-      return  [ 'opponent' => $idEnemy, 'idGame' => $idGame  ];
+      return  [ 'opponent' => $idEnemy, 'idGame' => $idGame, 'enemyNic' => $enemyNic  ];
   }
   
   // ф-я выбора всех игроков со статусом ready. Возвращает массив
