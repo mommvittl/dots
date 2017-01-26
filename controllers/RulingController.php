@@ -6,8 +6,8 @@ use Yii;
 
 
 ini_set('session.use_only_cookies',true);
-session_start();
-// if (!isset($_SESSION)) { session_start(); }
+//session_start();
+ if (!isset($_SESSION)) { session_start(); }
 
 class RulingController extends \yii\base\Controller{
   

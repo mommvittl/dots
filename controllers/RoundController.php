@@ -10,9 +10,9 @@ use app\models\Deleted_polygons;
 use app\controllers\RulingController;
 
 ini_set('session.use_only_cookies', true);
-session_start();
+//session_start();
 
-// if (!isset($_SESSION)) { session_start(); }
+if (!isset($_SESSION)) { session_start(); }
 
 class RoundController extends \yii\base\Controller {
 
@@ -565,7 +565,7 @@ class RoundController extends \yii\base\Controller {
         $arrMatches = [];
         $col = preg_match_all('/([0-9]{1,3}\.[0-9]+) ([0-9]{1,3}\.[0-9]+)/', $srtPolygon, $arrMatches);
         for ($i = 0; $i < $col; $i++) {
-            $arrDots[] = ['latitude' => $arrMatches[1][$i], 'longitude' => $arrMatches[2][$i]];
+            $arrDots[] = [$arrMatches[1][$i], $arrMatches[2][$i]];
         }
         return $arrDots;
     }
