@@ -36,7 +36,12 @@ var enemyMarker = L.icon({
 
 function startGPS() {
     modeSelected();
-    navigator.geolocation.getCurrentPosition(drawMap);
+    navigator.geolocation.getCurrentPosition(drawMap, errorCurrent);
+}
+
+function errorCurrent(err) {
+    console.log('ERROR(' + err.code + '): ' + err.message);
+    startGPS();
 }
 
 function startSimulation() {
@@ -47,13 +52,17 @@ function startSimulation() {
     watchID = 0;
     map.on('click', onMapClick);
     bindKeys();
-    function onMapClick(e) {
-        console.log(e);
+}
+
+function onMapClick(e) {
+    console.log(e);
+    if (myMarker) {
         removeMarkers();
-        myMarker = L.marker(e.latlng).addTo(map);
-        currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
-        sendPosition();
     }
+    myMarker = L.marker(e.latlng).addTo(map);
+    currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
+    sendPosition();
+    $('#ready').removeAttr('disabled');
 }
 
 function modeSelected() {
@@ -77,6 +86,7 @@ function drawMap(pos) {
     var center = pos;
     if (!simulation) {
         center = pos.coords;
+        currentPos = pos.coords;
     }
     if (!map) {
         $('#mapid').empty();
@@ -86,14 +96,16 @@ function drawMap(pos) {
             id: 'm1sha87.2hmg0n2n',
             accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
         }).addTo(map);
-        myMarker = L.marker([center.latitude, center.longitude]).addTo(map);
-        myRadius = L.circle([center.latitude, center.longitude], {
-            color: 'blue',
-            fillColor: 'blue',
-            fillOpacity: 0.25,
-            radius: center.accuracy
-        }).addTo(map);
-        $('#ready').removeAttr('disabled');
+        if (!simulation) {
+            myMarker = L.marker([center.latitude, center.longitude]).addTo(map);
+            myRadius = L.circle([center.latitude, center.longitude], {
+                color: 'blue',
+                fillColor: 'blue',
+                fillOpacity: 0.25,
+                radius: center.accuracy
+            }).addTo(map);
+            $('#ready').removeAttr('disabled');
+        }
     }
 }
 
@@ -105,7 +117,7 @@ function getReady() {
     ready = true;
     sendPosition();
     intervalId = setInterval(sendPosition, 15000);
-    $('#ready').attr('onclick', 'stopReady').text('unready');
+    $('#ready').on('click', 'stopReady').text('unready');
 }
 
 function stopReady() {
@@ -113,7 +125,7 @@ function stopReady() {
     ready = false;
     removeMarkers();
     clearInterval(intervalId);
-    $('#ready').attr('onclick', 'getReady').text('ready');
+    $('#ready').on('click', 'getReady').text('ready');
 }
 
 function stopGame() {
