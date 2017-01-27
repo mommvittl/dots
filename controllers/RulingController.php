@@ -213,11 +213,9 @@ class RulingController extends \yii\base\Controller{
     //Ф-я проверки залогинености пользователя. Возвращает true/false.
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
-        if ( isset( $this->session['logg']) &&   $this->session['logg'] === TRUE ){
-            $this->idGamer = (int) $this->session['idGamer'];   
-            return $this->existenceUser( $this->idGamer );
-        }
-        return  FALSE ;
+      $this->idGamer = ( isset($this->session['__id']) ) ? (int) $this->session['__id'] : 0;
+      if( !$this->idGame ){ return FALSE; }
+       return $this->existenceUser( $this->idGamer );
   }
   
    // Ф-я проверки существования игры. Возвращает true/false.
