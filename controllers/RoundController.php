@@ -10,9 +10,9 @@ use app\models\Deleted_polygons;
 use app\controllers\RulingController;
 
 ini_set('session.use_only_cookies', true);
-session_start();
+//session_start();
 
-// if (!isset($_SESSION)) { session_start(); }
+if (!isset($_SESSION)) { session_start(); }
 
 class RoundController extends \yii\base\Controller {
 
@@ -31,10 +31,12 @@ class RoundController extends \yii\base\Controller {
 
     // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public function actionIndex() {
-        $this->idGame = 27;
-        $this->idGamer = 13;
-        $query = $this->getStatusGame();
-        return $this->render('test', ['dots' => $query]);
+        $_SESSION[ 'idGame' ] = 12;
+        $_SESSION[ 'idGamer' ] = 19;
+        $_SESSION[ 'idEnemy' ] = 12;
+        $_SESSION[ 'startTime' ] = '2017-01-27 17:58:26';
+        $query = 44;
+        return $this->render('test', ['dots' => $_SESSION ]);
     }
 
     // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
@@ -405,6 +407,7 @@ class RoundController extends \yii\base\Controller {
 
         //  $radiusAccuracy = 0.00001;  // !!!!! - написать рассчет радиуса точности
         $dist = ( $position->accuracy > 20 ) ? $position->accuracy : 20;
+        if ( $dist > 40 ){ $dist = 40; }
         $radiusAccuracy = 0.0000075 * $dist;
         //$radiusAccuracy = 0.000375;
         $strQuery = " SELECT `id` FROM `user_has_points` WHERE `game_id`= " . $this->idGame
@@ -565,7 +568,7 @@ class RoundController extends \yii\base\Controller {
         $arrMatches = [];
         $col = preg_match_all('/([0-9]{1,3}\.[0-9]+) ([0-9]{1,3}\.[0-9]+)/', $srtPolygon, $arrMatches);
         for ($i = 0; $i < $col; $i++) {
-            $arrDots[] = ['latitude' => $arrMatches[1][$i], 'longitude' => $arrMatches[2][$i]];
+            $arrDots[] = [$arrMatches[1][$i], $arrMatches[2][$i]];
         }
         return $arrDots;
     }

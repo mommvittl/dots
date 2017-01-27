@@ -1,6 +1,7 @@
 var point = null;
 var points = [];
 var currentPos = null;
+var currentPoint = null;
 var map = null;
 var watchID = null;
 var myDots = [];
@@ -10,6 +11,7 @@ var opponentPolygons = [];
 var myMarker = null;
 var lastDotId = 0;
 var lastDot = null;
+var lastPoint = null;
 var lastPolygonId = 0;
 var lastDelDotId = 0;
 var lastDelPolygonId = 0;
@@ -21,35 +23,54 @@ var myRadius = 0;
 var simulation = false;
 var ready = false;
 var simulateInterval = null;
-
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
     maximumAge: 0
 };
-
 var enemyMarker = L.icon({
     iconUrl: 'images/enemy-marker.png',
     iconSize: [25, 41],
     iconAnchor: [12.5, 41]
 });
 
-function simulationSwitch() {
+function startGPS() {
+    modeSelected();
+    navigator.geolocation.getCurrentPosition(drawMap, errorCurrent);
+}
+
+function errorCurrent(err) {
+    console.log('ERROR(' + err.code + '): ' + err.message);
+    startGPS();
+}
+
+function startSimulation() {
+    modeSelected();
     simulation = true;
-        if (!map) {
-            currentPos = { latitude: 49.98986319656137, longitude: 36.229476928710945, accuracy: 40, speed: 0};
-            drawMap(currentPos);
-        } else {
-            currentPos.accuracy = 40;
-        }
-    console.log('simulation on: ' + simulation);
+    console.log('simulation on');
+    drawMap({ latitude: 49.98986319656137, longitude: 36.229476928710945, accuracy: 40, speed: 0});
     watchID = 0;
     map.on('click', onMapClick);
     bindKeys();
-    currentPos.accuracy = 40;
 }
 
-function test() {
+function onMapClick(e) {
+    console.log(e);
+    if (myMarker) {
+        removeMarkers();
+    }
+    myMarker = L.marker(e.latlng).addTo(map);
+    currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
+    sendPosition();
+    $('#ready').removeAttr('disabled');
+}
+
+function modeSelected() {
+    $('#mode').attr('hidden', 'true');
+    $('#game').removeAttr('hidden');
+}
+
+/*function test() {
     var testId = $('#testId').val();
     console.log(testId);
     $.ajax({
@@ -59,52 +80,33 @@ function test() {
         success: console.log('OK'),
         timeout: 4000
     });
-}
-
-var start = performance.now();
-navigator.geolocation.getCurrentPosition(drawMap);
-
-function onMapClick(e) {
-    console.log(e);
-    removeMarkers();
-    myMarker = L.marker(e.latlng).addTo(map);
-    myRadius = L.circle(e.latlng, {
-        color: 'blue',
-        fillColor: 'blue',
-        fillOpacity: 0.25,
-        radius: currentPos.accuracy
-    }).addTo(map);
-    currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
-    sendPosition();
-}
+}*/
 
 function drawMap(pos) {
+    var center = pos;
     if (!simulation) {
+        center = pos.coords;
         currentPos = pos.coords;
     }
     if (!map) {
         $('#mapid').empty();
-        map = L.map('mapid', {center: [currentPos.latitude, currentPos.longitude], zoom: 12});
+        map = L.map('mapid', {center: [center.latitude, center.longitude], zoom: 12});
         L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             maxZoom: 18,
             id: 'm1sha87.2hmg0n2n',
             accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
         }).addTo(map);
-        myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
-        myRadius = L.circle([currentPos.latitude, currentPos.longitude], {
-            color: 'blue',
-            fillColor: 'blue',
-            fillOpacity: 0.25,
-            radius: currentPos.accuracy
-        }).addTo(map);
-        $('#ready').removeAttr('disabled');
-        if (simulation) {
-            map.on('click', onMapClick);
+        if (!simulation) {
+            myMarker = L.marker([center.latitude, center.longitude]).addTo(map);
+            myRadius = L.circle([center.latitude, center.longitude], {
+                color: 'blue',
+                fillColor: 'blue',
+                fillOpacity: 0.25,
+                radius: center.accuracy
+            }).addTo(map);
+            $('#ready').removeAttr('disabled');
         }
     }
-    var draw = performance.now();
-    console.log(currentPos.latitude + ', ' + currentPos.longitude + ', ' + currentPos.accuracy + " " + (draw-start)/1000);
-    start = performance.now();
 }
 
 function getReady() {
@@ -115,7 +117,7 @@ function getReady() {
     ready = true;
     sendPosition();
     intervalId = setInterval(sendPosition, 15000);
-    $('#ready').attr('onclick', 'stopReady').text('unready');
+    $('#ready').on('click', 'stopReady').text('unready');
 }
 
 function stopReady() {
@@ -123,7 +125,7 @@ function stopReady() {
     ready = false;
     removeMarkers();
     clearInterval(intervalId);
-    $('#ready').attr('onclick', 'getReady').text('ready');
+    $('#ready').on('click', 'getReady').text('ready');
 }
 
 function stopGame() {
@@ -156,10 +158,10 @@ function startGame() {
         id: 'm1sha87.2hmg0n2n',
         accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
     }).addTo(map);
+    getData();
 }
 
-function getData(data){
-    console.log(data);
+function getData(){
     if (watchID == null) {
         return false;
     }
@@ -169,7 +171,7 @@ function getData(data){
         lastDelPolygonId: lastDelPolygonId
         // idGamer: idGamer
     };
-    console.log(JSON.stringify(lastIds));
+    // console.log(JSON.stringify(lastIds));
     $.ajax({
         type: 'POST',
         url: "/round/get-change",
@@ -189,9 +191,6 @@ function sendPoint(points){
         timeout: 4000
     });
 }
-
-/*{ 'opponent' : 0 , 'idGame' : 0 ,
- //   'arrOpponents' : [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ] } */
 
 function drawOpponents(data) {
     console.log(data);
@@ -261,7 +260,7 @@ function sendPosition(){
         'accuracy': currentPos.accuracy,
         'speed': currentPos.speed
     };
-    console.log(point);
+    // console.log(point);
     $.ajax({
         type: 'POST',
         url: "/ruling/get-ready",
@@ -282,7 +281,7 @@ function drawData(data) {
     }
 
     if (data.arrAddPolygon.length > 0) {
-        addPolygons(data.arrAddPollygon);
+        addPolygons(data.arrAddPolygon);
     }
 
     if (data.arrIdDeleteDots.length > 0) {
@@ -305,6 +304,8 @@ function addDots(dots) {
                 fillOpacity: 0.5,
                 radius: 10
             }).addTo(map);
+            lastDot = dots[i];
+            // console.log(lastDot);
         } else {
             opponentDots[dots[i].id] = L.circle([dots[i].latitude, dots[i].longitude], {
                 color: 'red',
@@ -314,19 +315,23 @@ function addDots(dots) {
             }).addTo(map);
         }
     }
+    if (simulation && !currentPoint && lastDot) {
+        currentPos = {latitude: lastDot.latitude, longitude: lastDot.longitude, accuracy: lastDot.accuracy, speed: lastDot.speed} ;
+    }
     lastDotId = dots[dots.length-1].id;
 }
 
 function addPolygons(polygons) {
     for (var i=0; i < polygons.length; i++) {
         if (polygons[i].gamer == 'me') {
-            myPolygons[polygons[i].id] = L.polygon(polygons[i].arrDots, {
+
+            myPolygons[polygons[i].id] = L.polygon(polygons[i].arrDot, {
                 color: 'blue',
                 fillColor: 'blue',
                 fillOpacity: 0.5
             }).addTo(map);
         } else {
-            opponentPolygons[polygons[i].id] = L.polygon(polygons[i].arrDots, {
+            opponentPolygons[polygons[i].id] = L.polygon(polygons[i].arrDot, {
                 color: 'red',
                 fillColor: 'red',
                 fillOpacity: 0.5
@@ -361,24 +366,28 @@ function deletePolygons(polygons) {
 }
 
 function bindKeys() {
-    document.body.onkeydown = function(event){
+    $("html").keydown(function(event){
         var key = event.keyCode;
         switch (key){
             case 87:
-                currentPos.latitude += 0.0001;
+            case 119:
+                currentPos.latitude = parseFloat(currentPos.latitude) + 0.0001;
                 break;
             case 83:
-                currentPos.latitude -= 0.0001;
+            case 115:
+                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0001;
                 break;
             case 68:
-                currentPos.longitude += 0.0001;
+            case 100:
+                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0001;
                 break;
             case 65:
-                currentPos.longitude -= 0.0001;
+            case 97:
+                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0001;
                 break;
         }
         newPosition();
-    };
+    });
 }
 
 function stopWatch() {
@@ -397,18 +406,24 @@ function newPosition(pos) {
     if (!simulation) {
         currentPos = pos.coords;
     }
-    if (lastDot == null) {
-        lastDot = currentPos;
+    if (!lastDot) {
+        console.log('RESET');
+        lastDot = {latitude: currentPos.latitude, longitude: currentPos.longitude, accuracy: currentPos.accuracy, speed: currentPos.speed};
         lastDot.accuracy = -1;
     }
-    var currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
-    var lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
+    if (simulation) {
+        currentPos.accuracy = parseInt((Math.random() * 30) + 10);
+    }
+    console.log(currentPos);
+    console.log(lastDot);
+    currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
+    lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
     var distance = currentPoint.distanceTo(lastPoint);
-    console.log(currentPoint);
-    console.log(lastPoint);
-    // var distance = map.distance(currentPoint, lastPoint);
+    // console.log(currentPoint);
+    // console.log(lastPoint);
     console.log(distance);
     if (distance > lastDot.accuracy) {
+    // if (true) {
         if (distance < 50) {
             point = {
                 'latitude': currentPos.latitude,
@@ -417,22 +432,21 @@ function newPosition(pos) {
                 'speed': currentPos.speed
             };
             points = [point];
-            lastDot = currentPos;
             sendPoint(points);
         } else {
+            points = [];
             var count = parseInt(distance / 50);
             latitudeInc = (currentPos.latitude - lastDot.latitude) / count;
             longitudeInc = (currentPos.longitude - lastDot.longitude) / count;
             for (var i=1; i <= count; i++) {
                 point = {
-                    'latitude': lastDot.latitude + latitudeInc * i,
-                    'longitude': lastDot.longitude + longitudeInc * i,
+                    'latitude': lastDot.latitude + (latitudeInc * i),
+                    'longitude': lastDot.longitude + (longitudeInc * i),
                     'accuracy': lastDot.accuracy,
                     'speed': lastDot.speed
                 };
                 points[points.length] = point;
             }
-            lastDot = points[points.length];
             sendPoint(points);
         }
     }

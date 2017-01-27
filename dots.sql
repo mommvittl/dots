@@ -75,8 +75,8 @@ CREATE TABLE `game` (
   `user2_id` int(10) UNSIGNED NOT NULL,
   `start_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
   `winner_id` int(10)  DEFAULT NULL,
-  `user1_scores` int(10)  DEFAULT NULL,
-  `user2_scores`  int(10)  DEFAULT NULL
+  `user1_scores` int(10)  DEFAULT 0,
+  `user2_scores`  int(10)  DEFAULT 0
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------
@@ -108,12 +108,9 @@ CREATE TABLE `user` (
   `game_id` int(10) UNSIGNED DEFAULT NULL,
   `scores` smallint(5) UNSIGNED DEFAULT NULL,
   `status` tinyint(1) DEFAULT NULL,
-<<<<<<< HEAD
-  `auth_key` varchar(32) DEFAULT NULL,	
-=======
-  `auth_key` varchar(32) DEFAULT NULL,
->>>>>>> 365639335df60217a101573cd416adda870ae55c
-  `access_token` varchar(32) DEFAULT NULL
+  `authKey` varchar(32) DEFAULT NULL,
+  `accessToken` varchar(32) DEFAULT NULL
+
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------

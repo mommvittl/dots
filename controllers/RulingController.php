@@ -6,8 +6,8 @@ use Yii;
 
 
 ini_set('session.use_only_cookies',true);
-session_start();
-// if (!isset($_SESSION)) { session_start(); }
+//session_start();
+ if (!isset($_SESSION)) { session_start(); }
 
 class RulingController extends \yii\base\Controller{
   
@@ -17,11 +17,6 @@ class RulingController extends \yii\base\Controller{
      protected $session;
    
      public function actionIndex() {
-       
-      //   $this->idGamer = 33;
-     //    $idGame = 10;
-      //   $idGamer =1;
-     //    $idEnemy =2;  
          $query = [
                     'idGame' => $_SESSION['idGame'] , 
                         'idGamer' =>  $_SESSION['idGamer'] , 
@@ -29,9 +24,7 @@ class RulingController extends \yii\base\Controller{
                          'startTime' => $_SESSION['startTime'] 
                  ];
        
-         return  $this->render('test' , [  'dots' =>$query  ]);
-          
-          
+         return  $this->render('test' , [  'dots' => $this->getRating()  ]);         
      }
      
     // Ф-я обработки запроса ready.  ------------------------------------------------------------------------------------------
@@ -175,7 +168,6 @@ class RulingController extends \yii\base\Controller{
         $this->sendRequest( [ 'status' => 'ok' ] ); 
     }
     
-    // Ф-я удаления переменных игры из сессии. Удаляет idEnemy,idGame,startTime
     public function actionRemoveSession() {
         $this->session = Yii::$app->session;
         if (!$this->session->isActive) {
@@ -185,6 +177,24 @@ class RulingController extends \yii\base\Controller{
         if( isset( $this->session[ 'idGame' ] ) ) { unset($this->session['idGame']); }
         if( isset( $this->session[ 'startTime' ] ) ) { unset($this->session['startTime']); }
         $this->sendRequest( ['status' => 'ok'] );
+    }
+    
+    // Ф-я получения рейтинга всех игроков. Возвращает массив :
+    //[ { "username"=> nicName , "points"=> points } , ...  ] .
+    public function getRating(){
+         $this->session = Yii::$app->session;
+        if (!$this->session->isActive) {
+              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
+        }
+        
+         // Проверка залогинен ли юзер
+         if( !$this->loggout() ){
+            $this->sendRequest( [  'status' => 'error', 'message' => ' error: access denied ' ] );
+        }
+        
+        // Получение рейтинга всех игроков 
+        $query = User::find()->select( ' `username`,`points` ' )->asArray()->all();
+        return $query;
     }
     // Внутренние ф-ии ======================================================
     protected function sendRequest($ajaxRequest) {
@@ -358,12 +368,20 @@ class RulingController extends \yii\base\Controller{
   // Ф-я определения победителя. Записывает id победителя в таблицу game. Принимает idGame.
   protected function getWinner( $idGame ) {
       $query = \app\models\Game::findOne( (int)$idGame );
+      $idGamer1 = (int)$query->user1_id ;
+      $idGamer2 = (int)$query->user2_id ;
       $score1 = ( $query->user1_scores ) ?  (int)$query->user1_scores : 0 ;
       $score2 = ( $query->user2_scores ) ?  (int)$query->user2_scores : 0 ;
       if( $score1 != $score2 ){
           $winner = ( $score1 > $score2 ) ? $query->user1_id : $query->user2_id ;
       }else{ $winner = 0;  }  
       $query->winner_id  = $winner;
+      $query->update();
+      $query = User::findOne( $idGamer1 ) ;
+      $query->points = (int)$query->points +  $score1;
+      $query->update();
+      $query = User::findOne( $idGamer2 ) ;
+      $query->points = (int)$query->points +  $score2;
       $query->update();
       return;
   }
