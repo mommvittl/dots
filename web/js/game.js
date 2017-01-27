@@ -371,7 +371,7 @@ function bindKeys() {
         switch (key){
             case 87:
             case 119:
-                currentPos.latitude = parseFloat(currentPos.latitude) + 0.0001;
+                currentPos.latitude = parseFloat(currentPos.latitude) + 0.001;
                 break;
             case 83:
             case 115:
@@ -414,8 +414,9 @@ function newPosition(pos) {
     if (simulation) {
         currentPos.accuracy = parseInt((Math.random() * 30) + 10);
     }
+    myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
     console.log(currentPos);
-    console.log(lastDot);
+    // console.log(lastDot);
     currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
     lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
     var distance = currentPoint.distanceTo(lastPoint);
@@ -440,8 +441,8 @@ function newPosition(pos) {
             longitudeInc = (currentPos.longitude - lastDot.longitude) / count;
             for (var i=1; i <= count; i++) {
                 point = {
-                    'latitude': lastDot.latitude + (latitudeInc * i),
-                    'longitude': lastDot.longitude + (longitudeInc * i),
+                    'latitude': parseFloat(lastDot.latitude) + (latitudeInc * i),
+                    'longitude': parseFloat(lastDot.longitude) + (longitudeInc * i),
                     'accuracy': lastDot.accuracy,
                     'speed': lastDot.speed
                 };
