@@ -23,12 +23,13 @@ var myRadius = 0;
 var simulation = false;
 var ready = false;
 var simulateInterval = null;
+var enemyMarker = null;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
     maximumAge: 0
 };
-var enemyMarker = L.icon({
+var enemyIcon = L.icon({
     iconUrl: 'images/enemy-marker.png',
     iconSize: [25, 41],
     iconAnchor: [12.5, 41]
@@ -162,6 +163,7 @@ function startGame() {
         id: 'm1sha87.2hmg0n2n',
         accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
     }).addTo(map);
+    $('#gameover').removeAttr('hidden');
     getData();
 }
 
@@ -213,7 +215,7 @@ function drawOpponents(data) {
             var distance = myPoint.distanceTo(enemyPoint);
             var text = arrOpponents[j].nick + " ( " + distance + " )";
             opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude],
-                {icon: enemyMarker, id: arrOpponents[j].id})
+                {icon: enemyIcon, id: arrOpponents[j].id})
                 .addTo(map).bindTooltip(arrOpponents[j].nick).openTooltip();
             opponents[j].on('click', selectedOpponent);
             $('#players').append($('<option>', {
@@ -241,6 +243,7 @@ function removeMarkers() {
     }
     map.removeLayer(myMarker);
     map.removeLayer(myRadius);
+    myMarker = null;
 }
 
 function selectedOpponent() {
@@ -315,7 +318,7 @@ function addDots(dots) {
                 color: 'blue',
                 fillColor: 'blue',
                 fillOpacity: 0.5,
-                radius: 10
+                radius: dots[i].accuracy
             }).addTo(map);
             lastDot = dots[i];
             // console.log(lastDot);
@@ -324,8 +327,15 @@ function addDots(dots) {
                 color: 'red',
                 fillColor: 'red',
                 fillOpacity: 0.5,
-                radius: 10
+                radius: dots[i].accuracy
             }).addTo(map);
+            if (!enemyMarker) {
+                enemyMarker = L.marker([dots[i].latitude, dots[i].longitude],
+                    {icon: enemyIcon})
+                    .addTo(map)
+            } else {
+                enemyMarker.setLatLng([dots[i].latitude, dots[i].longitude]);
+            }
         }
     }
     if (simulation && !currentPoint && lastDot) {
@@ -427,18 +437,23 @@ function newPosition(pos) {
     if (simulation) {
         currentPos.accuracy = parseInt((Math.random() * 30) + 10);
     }
-    myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
-    console.log(currentPos);
+        // console.log(currentPos);
     // console.log(lastDot);
     currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
     lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
+    console.log(currentPoint);
+    if (!myMarker) {
+        myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
+    } else {
+        myMarker.setLatLng([currentPos.latitude, currentPos.longitude]);
+    }
     var distance = currentPoint.distanceTo(lastPoint);
     // console.log(currentPoint);
     // console.log(lastPoint);
     console.log(distance);
-    if (distance > lastDot.accuracy) {
-    // if (true) {
-        if (distance < 50) {
+    // if (distance > lastDot.accuracy) {
+    if (distance >= 20) {
+        // if (distance < 50) {
             point = {
                 'latitude': currentPos.latitude,
                 'longitude': currentPos.longitude,
@@ -446,7 +461,7 @@ function newPosition(pos) {
                 'speed': currentPos.speed
             };
             points = [point];
-            sendPoint(points);
+            sendPoint(points);/*
         } else {
             points = [];
             var count = parseInt(distance / 50);
@@ -462,7 +477,7 @@ function newPosition(pos) {
                 points[points.length] = point;
             }
             sendPoint(points);
-        }
+        }*/
     }
 }
 
