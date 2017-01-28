@@ -31,6 +31,10 @@ class RoundController extends \yii\base\Controller {
 
     // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public function actionIndex() {
+        $_SESSION[ 'idGame' ] = 12;
+        $_SESSION[ 'idGamer' ] = 19;
+        $_SESSION[ 'idEnemy' ] = 12;
+        $_SESSION[ 'startTime' ] = '2017-01-27 17:58:26';
         $query = 44;
         return $this->render('test', ['dots' => $_SESSION ]);
     }
@@ -228,24 +232,21 @@ class RoundController extends \yii\base\Controller {
     //Ф-я проверки залогинености пользователя. Возвращает true/false.
     //Если результат true записывает idGame, idGamer.
     protected function loggout() {
-      
-        if (isset($this->session['logg']) && $this->session['logg'] === TRUE) {
-            $this->idGame = ( isset($this->session['idGame']) ) ? (int) $this->session['idGame'] : 0;
-            $this->idGamer = ( isset($this->session['idGamer']) ) ? (int) $this->session['idGamer'] : 0;
-            $this->idEnemy = ( isset($this->session['idEnemy']) ) ? (int) $this->session['idEnemy'] : 0;
-            $this->startTime = ( isset($this->session['startTime']) ) ? $this->session['startTime'] : 0;
-            if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime)) {
+        $this->idGame = ( isset($this->session['idGame']) ) ? (int) $this->session['idGame'] : 0;
+        $this->idGamer = ( isset($this->session['__id']) ) ? (int) $this->session['__id'] : 0;
+        $this->idEnemy = ( isset($this->session['idEnemy']) ) ? (int) $this->session['idEnemy'] : 0;
+        $this->startTime = ( isset($this->session['startTime']) ) ? $this->session['startTime'] : 0;
+        if( !$this->idGame ){ return FALSE; }
+        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime)) {
                 return FALSE;
             }
-            if (!$this->existenceUser($this->idGamer)) {
+        if (!$this->existenceUser($this->idGamer)) {
                 return FALSE;
-            }
-            if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
+            } 
+        if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
                 return FALSE;
-            }
-            return TRUE;
-        }
-        return FALSE;
+            }   
+         return TRUE;   
     }
 
     // Ф-я проверки существования в таблице `user` юзера с заданным id. Возвращает true/false.

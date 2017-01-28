@@ -12,7 +12,7 @@ class SimulatorController extends Controller {
         $session = Yii::$app->session;
         if (!$session->isActive) {  exit;  }      
         $idGame = ( isset($session['idGame']) ) ? $session['idGame'] : 0;
-        $idGamer = ( isset($session['idGamer']) ) ? $session['idGamer'] : 0;
+        $idGamer = ( isset($session['__id']) ) ? $session['__id'] : 0;
         $idEnemy = ( isset($session['idEnemy']) ) ? $session['idEnemy'] : 0;
         $log = ( isset($session['logg']) && ($session['logg'] === true ) ) ? TRUE : FALSE ;
         $strStartMess = ( $idGame ) ? "You are in the game. Для завершения игры нажмите stop" : "Нажмите start для поиска соперников" ;
