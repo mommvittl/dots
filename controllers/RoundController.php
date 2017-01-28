@@ -236,7 +236,7 @@ class RoundController extends \yii\base\Controller {
         $this->idGamer = ( isset($this->session['__id']) ) ? (int) $this->session['__id'] : 0;
         $this->idEnemy = ( isset($this->session['idEnemy']) ) ? (int) $this->session['idEnemy'] : 0;
         $this->startTime = ( isset($this->session['startTime']) ) ? $this->session['startTime'] : 0;
-        if( !$this->idGame ){ return FALSE; }
+        if( !$this->idGamer ){ return FALSE; }
         if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime)) {
                 return FALSE;
             }

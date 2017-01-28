@@ -41,12 +41,12 @@ class RulingController extends \yii\base\Controller{
         if (!$this->session->isActive) {
               $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
         }
-        
+  
         // Проверка залогинен ли юзер
          if( !$this->loggout() ){
             $this->sendRequest( [  'status' => 'error', 'message' => 'error: access denied' ] );
         }   
-          
+      
          // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
@@ -214,7 +214,7 @@ class RulingController extends \yii\base\Controller{
     //Если результат true записывает idGame, idGamer.
   protected function loggout() {
       $this->idGamer = ( isset($this->session['__id']) ) ? (int) $this->session['__id'] : 0;
-      if( !$this->idGame ){ return FALSE; }
+      if( !$this->idGamer ){ return FALSE; }
        return $this->existenceUser( $this->idGamer );
   }
   
