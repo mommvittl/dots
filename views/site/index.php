@@ -18,11 +18,9 @@ var_dump($_SESSION);
         </div>
         <div id="game" hidden>
             <div class="row">
-                <button id="ready" disabled onclick="getReady()">ready</button>
+                <button id="ready" disabled>ready</button>
                 <button id="watch" onclick="stopWatch()">stop watch</button>
-<!--                <button id="test" onclick="test()">test</button>-->
-<!--                <input id="testId" type="text" placeholder="enter id..." style="width: 80px">-->
-                <button id="gameover" onclick="stopGame()">game over</button>
+                <button id="gameover" onclick="stopGame()" hidden>game over</button>
             </div>
             <div class="row">
                 <div class="col-sm-8" id="mapid">Getting your position...</div>
@@ -34,9 +32,9 @@ var_dump($_SESSION);
                         <select id="players" size="10" class="form-control" onchange="selectedOpponent()">
                         </select>
                     </div>
-                    <div class="row">
+                    <!--<div class="row">
                         <button id="enemySelect" disabled onclick="enemySelect()">start</button>
-                    </div>
+                    </div>-->
                 </div>
             </div>
         </div>

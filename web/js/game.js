@@ -68,6 +68,7 @@ function onMapClick(e) {
 function modeSelected() {
     $('#mode').attr('hidden', 'true');
     $('#game').removeAttr('hidden');
+    $('#ready').attr('onclick', 'getReady()').text('ready');
 }
 
 /*function test() {
@@ -117,7 +118,10 @@ function getReady() {
     ready = true;
     sendPosition();
     intervalId = setInterval(sendPosition, 15000);
-    $('#ready').on('click', 'stopReady').text('unready');
+
+    // $('#ready').off().on('click', 'stopReady').text('unready');
+    // $('#ready').removeAttr('onclick');
+    $('#ready').attr('onclick', 'stopReady()').text('unready');
 }
 
 function stopReady() {
@@ -125,7 +129,7 @@ function stopReady() {
     ready = false;
     removeMarkers();
     clearInterval(intervalId);
-    $('#ready').on('click', 'getReady').text('ready');
+    $('#ready').attr('onclick', 'getReady()').text('ready');
 }
 
 function stopGame() {
@@ -169,7 +173,6 @@ function getData(){
         lastPolygonId: lastPolygonId,
         lastDelDotId: lastDelDotId,
         lastDelPolygonId: lastDelPolygonId
-        // idGamer: idGamer
     };
     // console.log(JSON.stringify(lastIds));
     $.ajax({
@@ -209,8 +212,10 @@ function drawOpponents(data) {
             var enemyPoint = L.latLng(arrOpponents[j].latitude, arrOpponents[j].longitude);
             var distance = myPoint.distanceTo(enemyPoint);
             var text = arrOpponents[j].nick + " ( " + distance + " )";
-            opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude], {icon: enemyMarker})
+            opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude],
+                {icon: enemyMarker, id: arrOpponents[j].id})
                 .addTo(map).bindTooltip(arrOpponents[j].nick).openTooltip();
+            opponents[j].on('click', selectedOpponent);
             $('#players').append($('<option>', {
                 value: arrOpponents[j].id,
                 text: text
@@ -226,6 +231,10 @@ function drawOpponents(data) {
     }
 }
 
+function test() {
+    console.log(this.options.id);
+}
+
 function removeMarkers() {
     for (var i=0; i < opponents.length; i++) {
         map.removeLayer(opponents[i]);
@@ -236,8 +245,12 @@ function removeMarkers() {
 
 function selectedOpponent() {
     console.log("SELECTED");
+    if (this.options.id) {
+        opponentId = this.options.id;
+        return enemySelect();
+    }
     opponentId = $("#players option:selected").val();
-    $('#enemySelect').removeAttr('disabled');
+    return enemySelect();
 }
 
 function enemySelect() {
@@ -371,19 +384,19 @@ function bindKeys() {
         switch (key){
             case 87:
             case 119:
-                currentPos.latitude = parseFloat(currentPos.latitude) + 0.001;
+                currentPos.latitude = parseFloat(currentPos.latitude) + 0.0005;
                 break;
             case 83:
             case 115:
-                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0001;
+                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0005;
                 break;
             case 68:
             case 100:
-                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0001;
+                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0005;
                 break;
             case 65:
             case 97:
-                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0001;
+                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0005;
                 break;
         }
         newPosition();
