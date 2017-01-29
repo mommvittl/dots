@@ -25,18 +25,19 @@ var ready = false;
 var simulateInterval = null;
 var enemyMarker = null;
 var icon = null;
+var requesting = false;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
     maximumAge: 0
 };
 var enemyIcon = L.icon({
-    iconUrl: 'images/enemy-marker.png',
+    iconUrl: '/images/enemy-marker.png',
     iconSize: [25, 41],
     iconAnchor: [12.5, 41]
 });
 var greyIcon = L.icon({
-    iconUrl: 'images/grey-marker.png',
+    iconUrl: '/images/grey-marker.png',
     iconSize: [25, 41],
     iconAnchor: [12.5, 41]
 });
@@ -71,7 +72,7 @@ function onMapClick(e) {
     }
     myMarker = L.marker(e.latlng).addTo(map);
     currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
-    sendPosition();
+    getReady();
     // $('#ready').removeAttr('disabled');
 }
 
@@ -152,7 +153,7 @@ function startGame() {
     $('#mapid').attr('class', 'col-sm-12');
     removeMarkers();
     map.remove();
-    map = L.map('mapid', {center: [currentPos.latitude, currentPos.longitude], zoom: 12});
+    map = L.map('mapid', {center: [currentPos.latitude, currentPos.longitude], zoom: 14});
     L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         maxZoom: 18,
         id: 'm1sha87.2hmg0n2n',
@@ -162,33 +163,45 @@ function startGame() {
     getData();
 }
 
-function getData(){
+function getData(data){
     if (watchID == null) {
         return false;
     }
-    var lastIds = {lastDotId: lastDotId,
-        lastPolygonId: lastPolygonId,
-        lastDelDotId: lastDelDotId,
-        lastDelPolygonId: lastDelPolygonId
-    };
-    $.ajax({
-        type: 'POST',
-        url: "/round/get-change",
-        data: JSON.stringify(lastIds),
-        success: drawData,
-        timeout: 4000
-    });
+    if (typeof(data) !== 'undefined') {
+        requesting = false;
+    }
+    if (!requesting) {
+        var lastIds = {
+            lastDotId: lastDotId,
+            lastPolygonId: lastPolygonId,
+            lastDelDotId: lastDelDotId,
+            lastDelPolygonId: lastDelPolygonId
+        };
+        $.ajax({
+            type: 'POST',
+            url: "/round/get-change",
+            data: JSON.stringify(lastIds),
+            success: drawData,
+            error: error,
+            timeout: 4000
+        });
+        requesting = true;
+    }
 }
 
 function sendPoint(points){
     // console.log(points);
-    $.ajax({
-        type: 'POST',
-        url: "/round/change-position",
-        data: JSON.stringify(points),
-        success: getData,
-        timeout: 4000
-    });
+    if (!requesting) {
+        $.ajax({
+            type: 'POST',
+            url: "/round/change-position",
+            data: JSON.stringify(points),
+            success: getData,
+            error: error,
+            timeout: 4000
+        });
+        requesting = true;
+    }
 }
 
 function drawOpponents(data) {
@@ -283,7 +296,9 @@ function sendPosition(){
 }
 
 function drawData(data) {
-    // console.log(data);
+    console.log(data);
+    requesting = false;
+    points = [];
     $('#error').empty().attr('hidden');
     if (data.status && data.status == "error") {
         $('#error').removeAttr('hidden').text(data.message);
@@ -336,7 +351,7 @@ function addDots(dots) {
                 fillOpacity: 0.5,
                 radius: dots[i].accuracy
             }).addTo(map);
-            lastDot = dots[i];
+            lastDot = {latitude: dots[i].latitude, longitude: dots[i].longitude, accuracy: dots[i].accuracy};
             // console.log(lastDot);
         } else {
             opponentDots[dots[i].id] = L.circle([dots[i].latitude, dots[i].longitude], {
@@ -477,7 +492,6 @@ function newPosition(pos) {
             points = [point];
             sendPoint(points);/*
         } else {
-            points = [];
             var count = parseInt(distance / 50);
             latitudeInc = (currentPos.latitude - lastDot.latitude) / count;
             longitudeInc = (currentPos.longitude - lastDot.longitude) / count;
@@ -491,10 +505,12 @@ function newPosition(pos) {
                 points[points.length] = point;
             }
             sendPoint(points);
+            lastDot = {latitude: currentPos.latitude, longitude: currentPos.longitude, accuracy: currentPos.accuracy};
         }*/
     }
 }
 
 function error(err) {
     console.log('ERROR(' + err.code + '): ' + err.message);
+    requesting = false;
 }
