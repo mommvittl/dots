@@ -23,13 +23,20 @@ var myRadius = 0;
 var simulation = false;
 var ready = false;
 var simulateInterval = null;
+var enemyMarker = null;
+var icon = null;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
     maximumAge: 0
 };
-var enemyMarker = L.icon({
+var enemyIcon = L.icon({
     iconUrl: 'images/enemy-marker.png',
+    iconSize: [25, 41],
+    iconAnchor: [12.5, 41]
+});
+var greyIcon = L.icon({
+    iconUrl: 'images/grey-marker.png',
     iconSize: [25, 41],
     iconAnchor: [12.5, 41]
 });
@@ -37,6 +44,7 @@ var enemyMarker = L.icon({
 function startGPS() {
     modeSelected();
     navigator.geolocation.getCurrentPosition(drawMap, errorCurrent);
+    $('#help').text('Getting your position...');
 }
 
 function errorCurrent(err) {
@@ -48,39 +56,29 @@ function startSimulation() {
     modeSelected();
     simulation = true;
     console.log('simulation on');
+
     drawMap({ latitude: 49.98986319656137, longitude: 36.229476928710945, accuracy: 40, speed: 0});
     watchID = 0;
     map.on('click', onMapClick);
+    $('#help').text('Click on map');
     bindKeys();
 }
 
 function onMapClick(e) {
-    console.log(e);
+    // console.log(e);
     if (myMarker) {
         removeMarkers();
     }
     myMarker = L.marker(e.latlng).addTo(map);
     currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
     sendPosition();
-    $('#ready').removeAttr('disabled');
+    // $('#ready').removeAttr('disabled');
 }
 
 function modeSelected() {
     $('#mode').attr('hidden', 'true');
     $('#game').removeAttr('hidden');
 }
-
-/*function test() {
-    var testId = $('#testId').val();
-    console.log(testId);
-    $.ajax({
-        type: 'POST',
-        url: "/test/set-sessions",
-        data: JSON.stringify({id: testId}),
-        success: console.log('OK'),
-        timeout: 4000
-    });
-}*/
 
 function drawMap(pos) {
     var center = pos;
@@ -89,7 +87,7 @@ function drawMap(pos) {
         currentPos = pos.coords;
     }
     if (!map) {
-        $('#mapid').empty();
+        // $('#mapid').empty();
         map = L.map('mapid', {center: [center.latitude, center.longitude], zoom: 12});
         L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             maxZoom: 18,
@@ -104,7 +102,8 @@ function drawMap(pos) {
                 fillOpacity: 0.25,
                 radius: center.accuracy
             }).addTo(map);
-            $('#ready').removeAttr('disabled');
+            // $('#ready').removeAttr('disabled');
+            getReady();
         }
     }
 }
@@ -117,22 +116,23 @@ function getReady() {
     ready = true;
     sendPosition();
     intervalId = setInterval(sendPosition, 15000);
-    $('#ready').on('click', 'stopReady').text('unready');
-}
 
+    // $('#ready').attr('onclick', 'stopReady()').text('unready');
+}
+/*
 function stopReady() {
     stopWatch();
     ready = false;
     removeMarkers();
     clearInterval(intervalId);
-    $('#ready').on('click', 'getReady').text('ready');
-}
+    $('#ready').attr('onclick', 'getReady()').text('ready');
+}*/
 
 function stopGame() {
     $.ajax({
         type: 'POST',
         url: "/ruling/stop-game",
-        success: location.reload(),
+        success: getData,
         timeout: 4000
     });
 }
@@ -145,7 +145,7 @@ function startGame() {
         console.log(watchID);
         intervalId = setInterval(getData, 5000);
     } else {
-
+        $('#help').text('Press A,S,W,D to move..');
         simulateInterval = setInterval(getData, 5000);
     }
     $('#prepare').remove();
@@ -158,6 +158,7 @@ function startGame() {
         id: 'm1sha87.2hmg0n2n',
         accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
     }).addTo(map);
+    $('#gameover').removeAttr('hidden');
     getData();
 }
 
@@ -169,9 +170,7 @@ function getData(){
         lastPolygonId: lastPolygonId,
         lastDelDotId: lastDelDotId,
         lastDelPolygonId: lastDelPolygonId
-        // idGamer: idGamer
     };
-    // console.log(JSON.stringify(lastIds));
     $.ajax({
         type: 'POST',
         url: "/round/get-change",
@@ -182,7 +181,7 @@ function getData(){
 }
 
 function sendPoint(points){
-    console.log(points);
+    // console.log(points);
     $.ajax({
         type: 'POST',
         url: "/round/change-position",
@@ -193,7 +192,7 @@ function sendPoint(points){
 }
 
 function drawOpponents(data) {
-    console.log(data);
+    // console.log(data);
     if (data.status && data.status == "error") {
         return false;
     }
@@ -201,16 +200,24 @@ function drawOpponents(data) {
         startGame();
         return true;
     } else {
+        $('#help').text('Choose your opponent...');
         var arrOpponents = data.arrOpponents;
         var myPoint = L.latLng(currentPos.latitude, currentPos.longitude);
         removeMarkers();
         $('#players').empty();
         for (var j=0; j < arrOpponents.length; j++) {
             var enemyPoint = L.latLng(arrOpponents[j].latitude, arrOpponents[j].longitude);
-            var distance = myPoint.distanceTo(enemyPoint);
-            var text = arrOpponents[j].nick + " ( " + distance + " )";
-            opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude], {icon: enemyMarker})
+            var distance = parseInt(myPoint.distanceTo(enemyPoint));
+            if (distance > 5000) {
+                icon = greyIcon;
+            } else {
+                icon = enemyIcon;
+            }
+            var text = arrOpponents[j].nick + " ( " + distance + " m )";
+            opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude],
+                {icon: icon, id: arrOpponents[j].id})
                 .addTo(map).bindTooltip(arrOpponents[j].nick).openTooltip();
+            opponents[j].on('click', selectedOpponent);
             $('#players').append($('<option>', {
                 value: arrOpponents[j].id,
                 text: text
@@ -232,12 +239,17 @@ function removeMarkers() {
     }
     map.removeLayer(myMarker);
     map.removeLayer(myRadius);
+    myMarker = null;
 }
 
 function selectedOpponent() {
     console.log("SELECTED");
+    if (this.options.id) {
+        opponentId = this.options.id;
+        return enemySelect();
+    }
     opponentId = $("#players option:selected").val();
-    $('#enemySelect').removeAttr('disabled');
+    return enemySelect();
 }
 
 function enemySelect() {
@@ -271,8 +283,15 @@ function sendPosition(){
 }
 
 function drawData(data) {
-    console.log(data);
+    // console.log(data);
+    $('#error').empty().attr('hidden');
     if (data.status && data.status == "error") {
+        $('#error').removeAttr('hidden').text(data.message);
+        return false;
+    }
+
+    if (data.status && data.status == "gameOver") {
+        finalScores(data.message);
         return false;
     }
 
@@ -295,6 +314,19 @@ function drawData(data) {
     }
 }
 
+function finalScores(data) {
+    stopWatch();
+    var text = (data.winner == 'me') ? 'YOU WIN!' : 'YOU LOSE!';
+    $('#winner').text(text);
+    $('#scoresMe').text('Your scores: ' + data.scoresMe);
+    $('#scoresEnemy').text('Opponent scores: ' + data.scoresEnemy);
+    $('#finalScores').modal('show');
+}
+
+function restart() {
+    location.reload();
+}
+
 function addDots(dots) {
     for (var i = 0; i < dots.length; i++) {
         if (dots[i].gamer == 'me') {
@@ -302,7 +334,7 @@ function addDots(dots) {
                 color: 'blue',
                 fillColor: 'blue',
                 fillOpacity: 0.5,
-                radius: 10
+                radius: dots[i].accuracy
             }).addTo(map);
             lastDot = dots[i];
             // console.log(lastDot);
@@ -311,8 +343,15 @@ function addDots(dots) {
                 color: 'red',
                 fillColor: 'red',
                 fillOpacity: 0.5,
-                radius: 10
+                radius: dots[i].accuracy
             }).addTo(map);
+            if (!enemyMarker) {
+                enemyMarker = L.marker([dots[i].latitude, dots[i].longitude],
+                    {icon: enemyIcon})
+                    .addTo(map)
+            } else {
+                enemyMarker.setLatLng([dots[i].latitude, dots[i].longitude]);
+            }
         }
     }
     if (simulation && !currentPoint && lastDot) {
@@ -371,19 +410,19 @@ function bindKeys() {
         switch (key){
             case 87:
             case 119:
-                currentPos.latitude = parseFloat(currentPos.latitude) + 0.001;
+                currentPos.latitude = parseFloat(currentPos.latitude) + 0.0005;
                 break;
             case 83:
             case 115:
-                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0001;
+                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0005;
                 break;
             case 68:
             case 100:
-                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0001;
+                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0005;
                 break;
             case 65:
             case 97:
-                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0001;
+                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0005;
                 break;
         }
         newPosition();
@@ -414,18 +453,21 @@ function newPosition(pos) {
     if (simulation) {
         currentPos.accuracy = parseInt((Math.random() * 30) + 10);
     }
-    myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
-    console.log(currentPos);
-    // console.log(lastDot);
     currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
     lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
+    // console.log(currentPoint);
+    if (!myMarker) {
+        myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
+    } else {
+        myMarker.setLatLng([currentPos.latitude, currentPos.longitude]);
+    }
     var distance = currentPoint.distanceTo(lastPoint);
     // console.log(currentPoint);
     // console.log(lastPoint);
-    console.log(distance);
-    if (distance > lastDot.accuracy) {
-    // if (true) {
-        if (distance < 50) {
+    // console.log(distance);
+    // if (distance > lastDot.accuracy) {
+    if (distance >= 20) {
+        // if (distance < 50) {
             point = {
                 'latitude': currentPos.latitude,
                 'longitude': currentPos.longitude,
@@ -433,7 +475,7 @@ function newPosition(pos) {
                 'speed': currentPos.speed
             };
             points = [point];
-            sendPoint(points);
+            sendPoint(points);/*
         } else {
             points = [];
             var count = parseInt(distance / 50);
@@ -449,7 +491,7 @@ function newPosition(pos) {
                 points[points.length] = point;
             }
             sendPoint(points);
-        }
+        }*/
     }
 }
 
