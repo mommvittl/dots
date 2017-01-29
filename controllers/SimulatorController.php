@@ -705,6 +705,7 @@ class SimulatorController extends Controller {
                         switch (key) {
                             case 38:
                                 latitude = latitude + 0.0003;
+                      //           changeAllPosition();
                                 break;
                             case 40:
                                 latitude = latitude - 0.0003;
@@ -720,6 +721,30 @@ class SimulatorController extends Controller {
                         }
                         changePosition();
                     }
+                     //----------------------------------------------------
+                    function changeAllPosition() {
+                        var parameter = [    ];                 
+                            parameter.push(  { 'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed, 'idGamer': idGamer, 'idEnemy': idEnemy }  );
+                            latitude +=  0.0005;
+                            parameter.push(  { 'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed, 'idGamer': idGamer, 'idEnemy': idEnemy }  );
+                            latitude -=  0.0004;
+                             parameter.push(  { 'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed, 'idGamer': idGamer, 'idEnemy': idEnemy }  );
+                            latitude +=  0.0003;
+                             parameter.push(  { 'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed, 'idGamer': idGamer, 'idEnemy': idEnemy }  );
+                            latitude -=  0.0002;
+                            parameter.push(  { 'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed, 'idGamer': idGamer, 'idEnemy': idEnemy }  );
+                            latitude +=  0.0006;
+                      
+                      
+                        var theParam = JSON.stringify(parameter);
+                        alert( theParam );
+                        ajaxPost.setAjaxQuery('/round/change-position', theParam, viewNewPosition, 'POST', 'text');
+                        //--------------------------
+                        myPlacemark.editor.startEditing();
+                        myPlacemark.geometry.setCoordinates([latitude, longitude]);
+                        myPlacemark.editor.stopEditing();
+                    }
+                    
                     //----------------------------------------------------
                     function changePosition() {
                         var parameter = [{'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed, 'idGamer': idGamer, 'idEnemy': idEnemy}];
@@ -874,11 +899,10 @@ class SimulatorController extends Controller {
         </HTML>
         <?php
     }
-
-    //=============================================================================   
-    //=============================================================================   
-    //=============================================================================   
-    //=============================================================================   
+    
+    public function actionTester( ) {
+           return $this->render('tester');
+    }
    
      
 }

@@ -28,7 +28,8 @@ DROP TABLE IF EXISTS `deleted_points`;
 CREATE TABLE `deleted_points` (
   `id` bigint(20) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `point_id` bigint(20) UNSIGNED NOT NULL  ,
-  `game_id` int(10) UNSIGNED NOT NULL
+  `game_id` int(10) UNSIGNED NOT NULL,
+  `del_time`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -90,7 +91,8 @@ CREATE TABLE `ready` (
   `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `user_id` int(10) UNSIGNED NOT NULL,
   `point` point NOT NULL,
-  `opponent_id` int(10)   DEFAULT  NULL
+  `opponent_id` int(10)   DEFAULT  NULL,
+  `update_time`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 -- --------------------------------------------------------

@@ -7,19 +7,18 @@ use app\models\User_has_points;
 use app\models\User_has_polygons;
 use app\models\Deleted_points;
 use app\models\Deleted_polygons;
-use app\controllers\RulingController;
+// use app\controllers\RulingController;
+use app\controllers\BasisController;
 
-ini_set('session.use_only_cookies', true);
-//session_start();
+/*
+  ini_set('session.use_only_cookies', true);
+  //session_start();
 
-if (!isset($_SESSION)) { session_start(); }
+  if (!isset($_SESSION)) { session_start(); }
+ */
 
-class RoundController extends \yii\base\Controller {
+class RoundController extends BasisController {
 
-    protected $idGame = null;
-    protected $idGamer = null;
-    protected $idEnemy = null;
-    protected $startTime = null;
     protected $arrAddDots = [];
     protected $arrAddPolygon = [];
     protected $arrIdDeleteDots = [];
@@ -27,50 +26,31 @@ class RoundController extends \yii\base\Controller {
     protected $lastDelDotId = 0;
     protected $lastDelPolygonId = 0;
     protected $scores = 0; // Заработанные в этом вызове очки
-    protected $session;
+
+    public function __construct($id, $module, $config = []) {
+        parent::__construct($id, $module, $config);
+        // Получение  данных о игре из сессии
+      //    $this->getSessVar();
+      $this->getGameVar();
+        // Валидация данных игры
+        if (!$this->validateSessVar()) {
+            $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 2 2 ']);
+        }
+    }
 
     // Временный метод !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     public function actionIndex() {
-        $_SESSION[ 'idGame' ] = 12;
-        $_SESSION[ 'idGamer' ] = 19;
-        $_SESSION[ 'idEnemy' ] = 12;
-        $_SESSION[ 'startTime' ] = '2017-01-27 17:58:26';
+        $_SESSION['idGame'] = 12;
+        $_SESSION['idGamer'] = 19;
+        $_SESSION['idEnemy'] = 12;
+        $_SESSION['startTime'] = '2017-01-27 17:58:26';
         $query = 44;
-        return $this->render('test', ['dots' => $_SESSION ]);
+        return $this->render('test', ['dots' => $_SESSION]);
     }
 
-    // Конец временного метода. Удалить !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // ТЕстовы метод ----------------------------------------------------------
-    public function actionTest() {
-        $strTestParameter = file_get_contents('php://input');
-        $arrTestPosition = json_decode($strTestParameter);
-        if (!is_array($arrTestPosition)) {
-            $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data. Mast be array.']);
-        }
-        $len = count($arrTestPosition);
-        for ($i = 0; $i < $len; $i++) {
-            $newDot = $arrTestPosition[$i];
-            $query = ' INSERT INTO `user_has_points`  SET `user_id` = 333 ';
-            $query .= ' ,  `accuracy` = ' . $newDot->accuracy . ' , `game_id` = 3333 ';
-            $query .= ', `point` = PointFromText( "POINT( ' . $newDot->latitude . ' ' . $newDot->longitude . ' )"  ) ';
-            $query .= ', `status` = 1 ';
-            Yii::$app->db->createCommand($query)->execute();
-        }
-        $this->sendRequest(['status' => 'ok', 'message' => 'test']);
-    }
-
-    // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------  
     // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------
     public function actionChangePosition() {
-        $this->session = Yii::$app->session;
-        if (!$this->session->isActive) {
-              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
-        }
-        // Проверка залогинен ли юзер
-        if (!$this->loggout()) {
-            $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 1 1 ']);
-        }
-
+       
         // Проверка состояния игры. Если игра закончена - возвращаем статус gameOver
         $statusGame = $this->getStatusGame();
         if ($statusGame['statusGame'] === FALSE) {
@@ -170,26 +150,11 @@ class RoundController extends \yii\base\Controller {
 
     // Ф-я прердачи на браузер изменений состояния точек ----------------------------------------------------------------
     public function actionGetChange() {
-        $this->session = Yii::$app->session;
-        if (!$this->session->isActive) {
-              $this->sendRequest(['status' => 'error', 'message' => 'error: the session is not open ']);
-        }
-        
-        // Проверка залогинен ли юзер
-        if (!$this->loggout()) {
-            $this->sendRequest([
-                'status' => 'error',
-                'message' => 'error: access denied'
-            ]);
-        }
 
         // Проверка состояния игры. Если игра закончена - возвращаем статус gameOver
         $statusGame = $this->getStatusGame();
         if ($statusGame['statusGame'] === FALSE) {
-            $this->sendRequest([
-                'status' => 'gameOver',
-                'message' => $statusGame
-            ]);
+            $this->sendRequest(['status' => 'gameOver', 'message' => $statusGame]);
         }
 
         // Создание нового обьекта с параметрами запроса
@@ -216,86 +181,18 @@ class RoundController extends \yii\base\Controller {
     }
 
     //=========== Ф-ии метода Change_position() ==========================================  
-    protected function sendRequest($ajaxRequest) {
-
-        header('Content-Type: text/json');
-        header('Expires: Mon, 26 Jul 1997 05:00:00 GMT');
-        header('Last-Modified: ' . gmdate('D, d M Y H:i:s') . 'GMT');
-        header('Cache-Control: no-cache, must-revalidate');
-        header('Pragma: no-cache');
-
-        //exit( json_encode( $ajaxRequest ) );
-        echo( json_encode($ajaxRequest) );
-        exit;
-    }
-
-    //Ф-я проверки залогинености пользователя. Возвращает true/false.
-    //Если результат true записывает idGame, idGamer.
-    protected function loggout() {
-        $this->idGame = ( isset($this->session['idGame']) ) ? (int) $this->session['idGame'] : 0;
-        $this->idGamer = ( isset($this->session['__id']) ) ? (int) $this->session['__id'] : 0;
-        $this->idEnemy = ( isset($this->session['idEnemy']) ) ? (int) $this->session['idEnemy'] : 0;
-        $this->startTime = ( isset($this->session['startTime']) ) ? $this->session['startTime'] : 0;
-        if( !$this->idGamer ){ return FALSE; }
+    // Ф-я валидации данных игры полученных из сессии. Возвращает true/false.
+    protected function validateSessVar() {
         if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $this->startTime)) {
-                return FALSE;
-            }
-        if (!$this->existenceUser($this->idGamer)) {
-                return FALSE;
-            } 
+            return FALSE;
+        }
         if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
-                return FALSE;
-            }   
-         return TRUE;   
-    }
-
-    // Ф-я проверки существования в таблице `user` юзера с заданным id. Возвращает true/false.
-    protected function existenceUser($idUser) {
-        $query = 'SELECT count(*)  FROM `user` WHERE `id` = ' . $idUser;
-        $col = Yii::$app->db->createCommand($query)->queryScalar();
-        return ( $col ) ? TRUE : FALSE;
-    }
-
-    // Ф-я проверки существования игры. Возвращает true/false.
-    // Принимает $idGame, $idGamer, $idEnemy
-    protected function existenceGame($idGame, $idGamer, $idEnemy) {
-        $query = ' SELECT count(*) FROM `game` WHERE `id`= :idGame  and '
-                . ' ( (  `user1_id`= :idGamer AND `user2_id` = :idEnemy ) OR '
-                . ' ( `user1_id`= :idEnemy AND `user2_id` = :idGamer ) ) ';
-        $col = Yii::$app->db->createCommand($query)
-                ->bindValues([':idGame' => $idGame, ':idGamer' => $idGamer, ':idEnemy' => $idEnemy])
-                ->queryScalar();
-        return ( $col ) ? TRUE : FALSE;
-    }
-
-    // Ф-я получения состояния игры(игра продолжается или закончена). 
-    // Возвращает [ 'statusGame' => true/false,'winner' => 'me'/'opponent'/'draw'/null,
-    //                           'scoresMe' => scores, 'scoresEnemy' => scores ]
-    protected function getStatusGame() {
-        $query = \app\models\Game::findOne($this->idGame);
-        if (is_null($query->winner_id)) {
-            $status = TRUE;
-            $winner = null;
-        } else {
-            $status = FALSE;
-            if ($query->winner_id == 0) {
-                $winner = 'draw';
-            } else {
-                $winner = ( $query->winner_id == $this->idGamer ) ? 'me' : 'opponent';
-            }
+            return FALSE;
         }
-        if ($query->user1_id == $this->idGamer) {
-            $scoresMe = $query->user1_scores;
-            $scoresEnemy = $query->user2_scores;
-        } else {
-            $scoresMe = $query->user2_scores;
-            $scoresEnemy = $query->user1_scores;
+        if (!$this->existenceUser($this->idEnemy)) {
+            return FALSE;
         }
-
-        return ['statusGame' => $status,
-            'winner' => $winner,
-            'scoresMe' => $scoresMe,
-            'scoresEnemy' => $scoresEnemy];
+        return TRUE;
     }
 
     //Ф-я валидации новой позиции. Возвращает true/false.
@@ -356,7 +253,7 @@ class RoundController extends \yii\base\Controller {
     // Ф-я проверки на попадание новой точки в полигон. Возвращает true/false.
     protected function inPolygons($position) {
         $query = ' SELECT count(*) as col FROM `user_has_polygons` '
-                . 'WHERE   `status` = 1 AND `game_id` = ' . $this->idGame 
+                . 'WHERE   `status` = 1 AND `game_id` = ' . $this->idGame
                 . ' AND ST_Within( PointFromText( "POINT( ' . $position->latitude . " " . $position->longitude
                 . ' )" ) , `polygon` ) = 1  ';
         $col = Yii::$app->db->createCommand($query)->queryOne();
@@ -394,17 +291,17 @@ class RoundController extends \yii\base\Controller {
         }
         return;
     }
-
+    
     // Ф-я проверки на повторное посещение точки. Возвращает наименьший из id точек координаты
     // которых совпадают с координатами новой позиции. Если нет совпадений координат ( эта позиция
     // новая ) - возвращает false.
-    // !!!!!! - пререписать для учета радиуса точности - !!!!!!!
     // 1м радиуса точности соотв 0,0000075 градусной меры
     protected function repeatVisit($position) {
 
-        //  $radiusAccuracy = 0.00001;  // !!!!! - написать рассчет радиуса точности
         $dist = ( $position->accuracy > 20 ) ? $position->accuracy : 20;
-        if ( $dist > 40 ){ $dist = 40; }
+        if ($dist > 40) {
+            $dist = 40;
+        }
         $radiusAccuracy = 0.0000075 * $dist;
         //$radiusAccuracy = 0.000375;
         $strQuery = " SELECT `id` FROM `user_has_points` WHERE `game_id`= " . $this->idGame
@@ -412,10 +309,9 @@ class RoundController extends \yii\base\Controller {
                 . " ST_Distance( `point`, PointFromText('POINT(" . $position->latitude . " " . $position->longitude . ")')) "
                 . " < " . $radiusAccuracy . " ORDER BY 'id' LIMIT 1 ";
 
+        $query = Yii::$app->db->createCommand($strQuery)->queryScalar();
 
-        $query = Yii::$app->db->createCommand($strQuery)->queryOne();
-
-        return ( $query === FALSE) ? FALSE : $query['id'];
+        return ( $query === FALSE) ? FALSE : $query;
     }
 
     // Ф-я получения массива точек. Принимает id начальной точки.
