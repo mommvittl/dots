@@ -21,6 +21,7 @@ class BasisController extends \yii\base\Controller {
         if (!$this->loggout()) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 1 1 ']);
         }
+      
     }
 
     protected function sendRequest($ajaxRequest) {

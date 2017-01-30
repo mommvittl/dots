@@ -10,20 +10,14 @@ use app\models\Game;
 class RulingController extends BasisController {
 
     public function actionIndex() {
-         $tt = Game::find()
-              ->asArray()
-                ->where( ' `user1_id` = :idGamer OR `user2_id`= :idGamer ' )
-                ->addParams( [ ':idGamer' => 14 ] )
-                ->orderBy(' `start_time` DESC ')
-                ->limit(1)
-                ->one();
+    
       
         $query = [
             'idGame' => $_SESSION['idGame'],
             'idGamer' => $_SESSION['idGamer'],
             'idEnemy' => $_SESSION['idEnemy'],
             'startTime' => $_SESSION['startTime'],
-            'queru' => $tt
+            'queru' => $this->getRating()
         ];
          return $this->render('test', ['dots' => $query]);
     }
@@ -153,8 +147,12 @@ class RulingController extends BasisController {
     //[ { "username"=> nicName , "points"=> points } , ...  ] .
     public function getRating() {
         // Получение рейтинга всех игроков 
-        $query = User::find()->select(' `username`,`points` ')->asArray()->all();
-        return $query;
+        $query = User::find()
+                ->select(' `username`,`scores` ')
+                ->orderBy( ' `scores` DESC  ' )
+                ->asArray()
+                ->all();    
+          $this->sendRequest( $query );
     }
 
     // Внутренние ф-ии ======================================================
@@ -303,10 +301,10 @@ class RulingController extends BasisController {
         $query->winner_id = $winner;
         $query->update();
         $query = User::findOne($idGamer1);
-        $query->points = (int) $query->points + $score1;
+        $query->scores = (int) $query->scores + $score1;
         $query->update();
         $query = User::findOne($idGamer2);
-        $query->points = (int) $query->points + $score2;
+        $query->scores = (int) $query->scores + $score2;
         $query->update();
         return;
     }

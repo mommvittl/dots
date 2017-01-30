@@ -10,12 +10,6 @@ use app\models\Deleted_polygons;
 // use app\controllers\RulingController;
 use app\controllers\BasisController;
 
-/*
-  ini_set('session.use_only_cookies', true);
-  //session_start();
-
-  if (!isset($_SESSION)) { session_start(); }
- */
 
 class RoundController extends BasisController {
 
@@ -50,7 +44,7 @@ class RoundController extends BasisController {
 
     // Ф-я обработки игрового процесса. ---------------------------------------------------------------------------------------
     public function actionChangePosition() {
-       
+         $startTime = microtime( true );
         // Проверка состояния игры. Если игра закончена - возвращаем статус gameOver
         $statusGame = $this->getStatusGame();
         if ($statusGame['statusGame'] === FALSE) {
@@ -78,6 +72,8 @@ class RoundController extends BasisController {
         for ($i = 0; $i < $len; $i++) {
             $request[] = $this->gameProcess($arrNewPosition[$i]);
         }
+        $request[] =    [ 'time' => microtime( true ) - $_SERVER[ 'REQUEST_TIME_FLOAT' ],
+           'time2' => microtime( true ) - $startTime ];
         $this->sendRequest($request);
     }
 
@@ -150,22 +146,26 @@ class RoundController extends BasisController {
 
     // Ф-я прердачи на браузер изменений состояния точек ----------------------------------------------------------------
     public function actionGetChange() {
-
+        $startTime = microtime( true );
         // Проверка состояния игры. Если игра закончена - возвращаем статус gameOver
         $statusGame = $this->getStatusGame();
         if ($statusGame['statusGame'] === FALSE) {
             $this->sendRequest(['status' => 'gameOver', 'message' => $statusGame]);
         }
-
+  
         // Создание нового обьекта с параметрами запроса
         $strParameter = file_get_contents('php://input');
-        $parameterQuery = json_decode($strParameter);
-
+        $parameterQuery = $this->getParameterQuery( $strParameter );
+        if( $parameterQuery === FALSE ){
+              $this->sendRequest(['status' => 'error', 'message' => 'incorrect input data' ]);
+        }  
+        //$parameterQuery = json_decode($strParameter);
+ 
         // Выбор данных для передачи на отрисовку  
-        $this->arrAddDots = $this->getDotsForAdd($parameterQuery->lastDotId);
-        $this->arrAddPolygon = $this->getPolygonForAdd($parameterQuery->lastPolygonId);
-        list( $this->lastDelDotId, $this->arrIdDeleteDots ) = $this->getDotsForDelete($parameterQuery->lastDelDotId);
-        list( $this->lastDelPolygonId, $this->arrIdDeletePolygon ) = $this->getPolygonForDelete($parameterQuery->lastDelPolygonId);
+        $this->arrAddDots = $this->getDotsForAdd($parameterQuery[  'lastDotId' ]);
+        $this->arrAddPolygon = $this->getPolygonForAdd($parameterQuery[  'lastPolygonId' ]);
+        list( $this->lastDelDotId, $this->arrIdDeleteDots ) = $this->getDotsForDelete($parameterQuery[  'lastDelDotId' ]);
+        list( $this->lastDelPolygonId, $this->arrIdDeletePolygon ) = $this->getPolygonForDelete($parameterQuery[  'lastDelPolygonId' ]);
 
         // формирование ответа для браузера
         $request = [
@@ -175,7 +175,11 @@ class RoundController extends BasisController {
             'arrIdDeleteDots' => $this->arrIdDeleteDots,
             'arrIdDeletePolygon' => $this->arrIdDeletePolygon,
             'lastDelDotId' => $this->lastDelDotId,
-            'lastDelPolygonId' => $this->lastDelPolygonId
+            'lastDelPolygonId' => $this->lastDelPolygonId,
+            'myScores' => $statusGame['scoresMe'], 
+            'enemyScores' => $statusGame['scoresEnemy'],
+           'time' => microtime( true ) - $_SERVER[ 'REQUEST_TIME_FLOAT' ],
+           'time2' => microtime( true ) - $startTime
         ];
         $this->sendRequest($request);
     }
@@ -279,9 +283,9 @@ class RoundController extends BasisController {
                     $query->where(' `id` < :id and `game_id` = :idGame and `user_id` = :idGamer AND `status`=1 ');
                 }
             }
-            $query->addParams([':id' => $idDot, ':idGame' => $this->idGame, ':idGamer' => $idGamer]);
+          $query->addParams([':id' => $idDot, ':idGame' => $this->idGame, ':idGamer' => $idGamer]);
         }
-        foreach ($query->all() as $value) {
+        foreach ($query->each() as $value) {
             $deleteDot = new \app\models\Deleted_points;
             $deleteDot->game_id = $this->idGame;
             $deleteDot->point_id = $value['id'];
@@ -472,8 +476,9 @@ class RoundController extends BasisController {
         $deleteDots = [];
         $newLastId = $prevLastId;
         $query = Deleted_points::find()
-                ->select(' id, point_id')->where('id > :id and game_id = :idGame')
+                ->select(' `id`, `point_id` ')->where('id > :id and game_id = :idGame')
                 ->addParams([':id' => $prevLastId, ':idGame' => $this->idGame])
+                ->orderBy(' `id` ASC ')
                 ->asArray()
                 ->all();
         foreach ($query as $value) {
@@ -501,5 +506,17 @@ class RoundController extends BasisController {
         }
         return [$newLastId, $deletePolygon];
     }
-
+    
+    protected function getParameterQuery( $strQuery ) {
+        $query = json_decode( $strQuery , true );
+        if( !is_array($query) || !isset( $query[  'lastDotId' ] ) || !isset( $query[  'lastPolygonId' ] )
+                || !isset( $query[  'lastDelDotId' ] ) || !isset( $query[  'lastDelPolygonId' ] ) ){ return FALSE ; }
+        return [
+             'lastDotId' => (int)$query[  'lastDotId' ],
+             'lastPolygonId' => (int)$query[  'lastPolygonId' ],
+             'lastDelDotId' => (int)$query[  'lastDelDotId' ],
+             'lastDelPolygonId' => (int)$query[  'lastDelPolygonId' ]
+        ];
+    }
+    
 }

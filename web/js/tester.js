@@ -118,6 +118,7 @@ function getReadyCommand() {
 
 function viewGetReady(responseXMLDocument) {
     // alert( responseXMLDocument );
+      console.log(responseXMLDocument);
     var response = JSON.parse(responseXMLDocument);
     var idEnemy = response.opponent;
     var idGame = response.idGame;
@@ -211,7 +212,7 @@ function getNewCommand() {
     ajaxGet.setAjaxQuery('/round/get-change', theParam, getResponseScript, 'POST', 'text');
 }
 function getResponseScript(responseXMLDocument) {
-    //  alert(responseXMLDocument );
+   //  alert(responseXMLDocument );
     var response = JSON.parse(responseXMLDocument);
     var status = response.status || 'error';
     switch (status) {
@@ -231,8 +232,8 @@ function  responseStatusOk(response) {
     viewAddPolygons(response);
     viewDeleteDots(response);
     viewDeletePolygons(response);
-    lastDelDotId = response.lastDelDotId;
-    lastDelPolygonId = response.lastDelPolygonId;
+    if ( response.lastDelDotId  ) {  lastDelDotId = response.lastDelDotId }
+    if( response.lastDelPolygonId ) {  lastDelPolygonId = response.lastDelPolygonId}
 }
 function  responseStatusGameOver(response) {
     var statusGame = response.message;
@@ -259,7 +260,7 @@ function removeGame() {
 }
 //------------------------------------------------------
 function  viewAddDots(responseData) {
-    if (responseData.arrAddDots.length == 0) {
+    if ( !responseData.arrAddDots ||  responseData.arrAddDots.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddDots.length; i++) {
@@ -276,7 +277,7 @@ function  viewAddDots(responseData) {
     return true;
 }
 function  viewAddPolygons(responseData) {
-    if (responseData.arrAddPolygon.length == 0) {
+    if ( !responseData.arrAddPolygon || responseData.arrAddPolygon.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddPolygon.length; i++) {
@@ -297,7 +298,7 @@ function  viewAddPolygons(responseData) {
     }
 }
 function  viewDeleteDots(responseData) {
-    if (responseData.arrIdDeleteDots.length == 0) {
+    if ( !responseData.arrIdDeleteDots || responseData.arrIdDeleteDots.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrIdDeleteDots.length; i++) {
@@ -308,7 +309,7 @@ function  viewDeleteDots(responseData) {
     return true;
 }
 function  viewDeletePolygons(responseData) {
-    if (responseData.arrIdDeletePolygon.length == 0) {
+    if (  !responseData.arrIdDeletePolygon || responseData.arrIdDeletePolygon.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrIdDeletePolygon.length; i++) {
