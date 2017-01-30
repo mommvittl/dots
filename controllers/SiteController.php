@@ -11,7 +11,7 @@ use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
 
-//ini_set('session.use_only_cookies',true);
+ini_set('session.use_only_cookies',true);
 Yii::$app->session->open();
 
 
@@ -72,6 +72,10 @@ class SiteController extends Controller
             return $this->redirect('/site/login');
         }
         return $this->render('index');
+        Yii::$app->session->open();
+        $_SESSION['idGamer']= $user->getId();
+        $_SESSION['logg']= true;
+
 
     }
 
