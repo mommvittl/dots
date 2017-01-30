@@ -20,6 +20,12 @@ var polygons;
 var collectionOpponents;
 var functionNameForMyButClick;
 var timerId;
+
+var idEnemy;
+var idGame;
+var enemyNic;
+var myScores = 0;
+var enemyScores = 0;
 // var timerId = setInterval(getNewCommand, 2000);
 
 var idPosition = window.navigator.geolocation.watchPosition(successPosition, errorPosition, {enableHighAccuracy: true});
@@ -37,7 +43,7 @@ ymaps.ready(function () {
         zoom: 18,
         controls: ["zoomControl"]
     });
-   myPlacemark = new ymaps.Placemark([49.94, 36.30], {iconContent: 'my'}, {preset: 'islands#redStretchyIcon'});
+    myPlacemark = new ymaps.Placemark([49.94, 36.30], {iconContent: 'my'}, {preset: 'islands#redStretchyIcon'});
     myMap.geoObjects.add(myPlacemark);
     var idStartPosition = window.navigator.geolocation.getCurrentPosition(getStartPosition, errorPosition, {enableHighAccuracy: true});
 });
@@ -61,6 +67,8 @@ function initializationVar() {
     dots = {};
     polygons = {};
     collectionOpponents = [];
+    myScores = 0;
+    enemyScores = 0;
     functionNameForMyButClick = emptyFunction;
 }
 //----------------------------------------------------
@@ -118,21 +126,21 @@ function getReadyCommand() {
 
 function viewGetReady(responseXMLDocument) {
     // alert( responseXMLDocument );
-      console.log(responseXMLDocument);
+    console.log(responseXMLDocument);
     var response = JSON.parse(responseXMLDocument);
-    var idEnemy = response.opponent;
-    var idGame = response.idGame;
-    var enemyNic = response.enemyNic
+    idEnemy = response.opponent;
+    idGame = response.vaidGame;
+    enemyNic = response.enemyNic
     var arrOpponents = response.arrOpponents;
     removeCollectionOpponents();
     if (idEnemy == 0 && idGame == 0) {
         var len = arrOpponents.length;
-        document.getElementById('informStr').innerHTML = " Найдено  " + len + " игроков со статусом Ready.";
+        document.getElementById('informStr').innerHTML = " Найдено  " + len + " игроков .";
         for (var i = 0; i < len; i++) {
             var dist = getDistanse(latitude, longitude, arrOpponents[ i ].latitude, arrOpponents[ i ].longitude);
-            var gamerColor = (dist > 1000) ?	'islands#grayDotIconWithCaption' :'islands#darkGreenDotIconWithCaption' ;
-            var cont = arrOpponents[ i ].nick + " distance:  " + dist + " m.";        	
-            var myPlacemark = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude], {iconCaption: cont }, {preset: gamerColor });   
+            var gamerColor = (dist > 1000) ? 'islands#grayDotIconWithCaption' : 'islands#darkGreenDotIconWithCaption';
+            var cont = arrOpponents[ i ].nick + " distance:  " + dist + " m.";
+            var myPlacemark = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude], {iconCaption: cont}, {preset: gamerColor});
             collectionOpponents[i] = myPlacemark;
             if (dist <= 1000) {
                 collectionOpponents[i].events.add('click', selEnemyCommand.bind(arrOpponents[ i ]));
@@ -142,7 +150,7 @@ function viewGetReady(responseXMLDocument) {
         setTimeout(getReadyCommand, 10000);
     } else {
         removeCollectionOpponents();
-        document.getElementById('informStr').innerHTML = " Game Start:  Противник: " + enemyNic;
+        document.getElementById('informStr').innerHTML = "You: " + myScores + ", " + enemyNic + " " + enemyScores;
         var stringInform = " Старт игры <br> Ваш противник:  " + enemyNic;
         modalInformWindow(stringInform);
         functionNameForMyButClick = stopGame;
@@ -196,8 +204,8 @@ function stopGame() {
     modal.style.cssText = "min-width: 80vw;max-width: 100%;min-height: 70vh;max-height: 100%;cursor:pointer;padding:10px;background:#BDBDBD;color:#3B3C1D;text-align:center;font: 1em/2em arial;border: 4px double #1E0D69;position:fixed;z-index: 1000;top:50%;left:50%;transform:translate(-50%, -50%);box-shadow: 6px 6px #14536B;"
     var ok_but = document.getElementById('ok_but');
     var cancel_but = document.getElementById('cancel_but');
-    ok_but.style.cssText = "border-radius:10px; padding: 10px 20px; background:#FFE4E1; cursor:pointer; outline:none; margin-right: 20px;";
-    cancel_but.style.cssText = "border-radius:10px; padding: 10px 20px; background:#F5F5DC; cursor:pointer; outline:none; margin-left: 20px;";
+    ok_but.style.cssText = "border-radius:10px; padding: 30px; background:#FFE4E1; cursor:pointer; outline:none; margin-right: 20px;";
+    cancel_but.style.cssText = "border-radius:10px; padding: 30px; background:#F5F5DC; cursor:pointer; outline:none; margin-left: 20px;";
     cancel_but.onclick = function () {
         document.body.removeChild(modal);
     };
@@ -212,7 +220,7 @@ function getNewCommand() {
     ajaxGet.setAjaxQuery('/round/get-change', theParam, getResponseScript, 'POST', 'text');
 }
 function getResponseScript(responseXMLDocument) {
-   //  alert(responseXMLDocument );
+    //  alert(responseXMLDocument );
     var response = JSON.parse(responseXMLDocument);
     var status = response.status || 'error';
     switch (status) {
@@ -232,8 +240,19 @@ function  responseStatusOk(response) {
     viewAddPolygons(response);
     viewDeleteDots(response);
     viewDeletePolygons(response);
-    if ( response.lastDelDotId  ) {  lastDelDotId = response.lastDelDotId }
-    if( response.lastDelPolygonId ) {  lastDelPolygonId = response.lastDelPolygonId}
+    if (response.lastDelDotId) {
+        lastDelDotId = response.lastDelDotId;
+    }
+    if (response.lastDelPolygonId) {
+        lastDelPolygonId = response.lastDelPolygonId;
+    }
+    if (response.myScores) {
+        myScores = response.myScores;
+    }
+    if (response.enemyScores) {
+        enemyScores = response.enemyScores;
+    }
+    document.getElementById('informStr').innerHTML = "You: " + myScores + " " + enemyNic + " " + enemyScores;
 }
 function  responseStatusGameOver(response) {
     var statusGame = response.message;
@@ -260,7 +279,7 @@ function removeGame() {
 }
 //------------------------------------------------------
 function  viewAddDots(responseData) {
-    if ( !responseData.arrAddDots ||  responseData.arrAddDots.length == 0) {
+    if (!responseData.arrAddDots || responseData.arrAddDots.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddDots.length; i++) {
@@ -277,7 +296,7 @@ function  viewAddDots(responseData) {
     return true;
 }
 function  viewAddPolygons(responseData) {
-    if ( !responseData.arrAddPolygon || responseData.arrAddPolygon.length == 0) {
+    if (!responseData.arrAddPolygon || responseData.arrAddPolygon.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddPolygon.length; i++) {
@@ -298,7 +317,7 @@ function  viewAddPolygons(responseData) {
     }
 }
 function  viewDeleteDots(responseData) {
-    if ( !responseData.arrIdDeleteDots || responseData.arrIdDeleteDots.length == 0) {
+    if (!responseData.arrIdDeleteDots || responseData.arrIdDeleteDots.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrIdDeleteDots.length; i++) {
@@ -309,7 +328,7 @@ function  viewDeleteDots(responseData) {
     return true;
 }
 function  viewDeletePolygons(responseData) {
-    if (  !responseData.arrIdDeletePolygon || responseData.arrIdDeletePolygon.length == 0) {
+    if (!responseData.arrIdDeletePolygon || responseData.arrIdDeletePolygon.length == 0) {
         return false;
     }
     for (var i = 0; i < responseData.arrIdDeletePolygon.length; i++) {

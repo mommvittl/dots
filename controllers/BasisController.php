@@ -1,6 +1,7 @@
 <?php
 
 namespace app\controllers;
+
 use Yii;
 use app\models\Game;
 
@@ -21,7 +22,6 @@ class BasisController extends \yii\base\Controller {
         if (!$this->loggout()) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 1 1 ']);
         }
-      
     }
 
     protected function sendRequest($ajaxRequest) {
@@ -63,7 +63,7 @@ class BasisController extends \yii\base\Controller {
         return ( $col ) ? TRUE : FALSE;
     }
 
-       // Ф-я получения состояния игры(игра продолжается или закончена). 
+    // Ф-я получения состояния игры(игра продолжается или закончена). 
     // Возвращает [ 'statusGame' => true/false,'winner' => 'me'/'opponent'/'draw'/null,
     //                           'scoresMe' => scores, 'scoresEnemy' => scores ]
     protected function getStatusGame() {
@@ -92,30 +92,30 @@ class BasisController extends \yii\base\Controller {
             'scoresMe' => $scoresMe,
             'scoresEnemy' => $scoresEnemy];
     }
-    
+
     //Ф-я получения данны о игре из переменных сессии.
     protected function getSessVar() {
         $this->idGame = ( isset($_SESSION['idGame']) ) ? (int) $_SESSION['idGame'] : 0;
         $this->idEnemy = ( isset($_SESSION['idEnemy']) ) ? (int) $_SESSION['idEnemy'] : 0;
         $this->startTime = ( isset($_SESSION['startTime']) ) ? $_SESSION['startTime'] : 0;
-        return TRUE;      
+        return TRUE;
     }
-    
+
     // Ф-я заполнения переменных $this->idGame $this->idEnemy $this->startTime
     protected function getGameVar() {
         $query = Game::find()
-                ->where( ' `user1_id` = :idGamer OR `user2_id`= :idGamer ' )
-                ->addParams( [ ':idGamer' => $this->idGamer ] )
+                ->where(' `user1_id` = :idGamer OR `user2_id`= :idGamer ')
+                ->addParams([':idGamer' => $this->idGamer])
                 ->orderBy(' `start_time` DESC ')
                 ->limit(1)
                 ->asArray()
                 ->one();
-        if( $query ){
-            $this->idGame = $query[ 'id' ];
-            $this->startTime = $query[ 'start_time' ];
-            $this->idEnemy = ( $this->idGamer ==  $query[ 'user1_id' ] ) ?  $query[ 'user2_id' ] :  $query[ 'user1_id' ] ;
+        if ($query) {
+            $this->idGame = $query['id'];
+            $this->startTime = $query['start_time'];
+            $this->idEnemy = ( $this->idGamer == $query['user1_id'] ) ? $query['user2_id'] : $query['user1_id'];
         }
-        return ;
+        return;
     }
-    
+
 }

@@ -10,8 +10,8 @@ use app\models\Game;
 class RulingController extends BasisController {
 
     public function actionIndex() {
-    
-      
+
+
         $query = [
             'idGame' => $_SESSION['idGame'],
             'idGamer' => $_SESSION['idGamer'],
@@ -19,7 +19,7 @@ class RulingController extends BasisController {
             'startTime' => $_SESSION['startTime'],
             'queru' => $this->getRating()
         ];
-         return $this->render('test', ['dots' => $query]);
+        return $this->render('test', ['dots' => $query]);
     }
 
     // Ф-я обработки запроса ready.  ------------------------------------------------------------------------------------------
@@ -113,8 +113,8 @@ class RulingController extends BasisController {
     // и корректирует таблицу game
     public function actionStopGame() {
         // Получение данных из сессии 
-      //    $this->getSessVar();
-      $this->getGameVar();
+        //    $this->getSessVar();
+        $this->getGameVar();
 
         // Проверка существования игры.
         if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
@@ -149,10 +149,10 @@ class RulingController extends BasisController {
         // Получение рейтинга всех игроков 
         $query = User::find()
                 ->select(' `username`,`scores` ')
-                ->orderBy( ' `scores` DESC  ' )
+                ->orderBy(' `scores` DESC  ')
                 ->asArray()
-                ->all();    
-          $this->sendRequest( $query );
+                ->all();
+        $this->sendRequest($query);
     }
 
     // Внутренние ф-ии ======================================================
