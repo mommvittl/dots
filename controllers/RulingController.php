@@ -145,7 +145,7 @@ class RulingController extends BasisController {
 
     // Ф-я получения рейтинга всех игроков. Возвращает массив :
     //[ { "username"=> nicName , "points"=> points } , ...  ] .
-    public function getRating() {
+    public function actionRating() {
         // Получение рейтинга всех игроков 
         $query = User::find()
                 ->select(' `username`,`scores` ')
