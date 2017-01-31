@@ -26,6 +26,7 @@ var idGame;
 var enemyNic;
 var myScores = 0;
 var enemyScores = 0;
+var gameOverFlag = false;
 // var timerId = setInterval(getNewCommand, 2000);
 
 var idPosition = window.navigator.geolocation.watchPosition(successPosition, errorPosition, {enableHighAccuracy: true});
@@ -35,14 +36,21 @@ functionNameForMyButClick = findGetReady;
 var gameControl = document.getElementById('gameControl');
 gameControl.onclick = function () {
     functionNameForMyButClick();
-}
+};
 //-------------------------------------------------------------------------------------------------------------------------------------------------
 ymaps.ready(function () {
     myMap = new ymaps.Map("YMapsID", {
         center: [49.94, 36.30],
         zoom: 18,
-        controls: ["zoomControl"]
+        //  controls: [ 'smallMapDefaultSet'  ]
+      controls: [ "zoomControl" , "fullscreenControl"  ]
     });
+    var myButton = new ymaps.control.Button( {
+    data: {  content: "где я ?"    },  
+    options: {   selectOnClick : false   }
+     });
+    myButton.events.add( 'press',  function(){  myMap.setCenter([latitude, longitude]);  } );
+    myMap.controls.add(myButton, { float: "left" });
     myPlacemark = new ymaps.Placemark([49.94, 36.30], {iconContent: 'my'}, {preset: 'islands#redStretchyIcon'});
     myMap.geoObjects.add(myPlacemark);
     var idStartPosition = window.navigator.geolocation.getCurrentPosition(getStartPosition, errorPosition, {enableHighAccuracy: true});
@@ -129,7 +137,7 @@ function viewGetReady(responseXMLDocument) {
     console.log(responseXMLDocument);
     var response = JSON.parse(responseXMLDocument);
     idEnemy = response.opponent;
-    idGame = response.vaidGame;
+    idGame = response.idGame;
     enemyNic = response.enemyNic
     var arrOpponents = response.arrOpponents;
     removeCollectionOpponents();
@@ -164,6 +172,15 @@ function removeCollectionOpponents() {
     }
     collectionOpponents = [];
 }
+function redrawDots(){
+    for( var dt in dots ){
+         myMap.geoObjects.remove( dots[ dt ] );         
+    }
+    lastDotId = 0; 
+    lastDelDotId = 0;
+    dots = {};
+}
+
 // ---------------------------------------------------
 function selEnemyCommand() {
     document.getElementById('informStr').innerHTML = " Инициализация игры... ";
@@ -258,6 +275,7 @@ function  responseStatusGameOver(response) {
     var statusGame = response.message;
     var stringInform = "Окончание игры. <br> Победитель " + statusGame.winner + "<br> Ваши очки: " + statusGame.scoresMe + "<br> очки соперника: " + statusGame.scoresEnemy;
     clearInterval(timerId);
+    gameOverFlag = true ;
     modalInformWindow(stringInform);
     removeGame();
 }
@@ -315,6 +333,7 @@ function  viewAddPolygons(responseData) {
         );
         myMap.geoObjects.add(polygons[ lastPolygonId ]);
     }
+    redrawDots();
 }
 function  viewDeleteDots(responseData) {
     if (!responseData.arrIdDeleteDots || responseData.arrIdDeleteDots.length == 0) {

@@ -11,13 +11,13 @@ class RulingController extends BasisController {
 
     public function actionIndex() {
 
-
+        $this->getWinner( 15 );
         $query = [
             'idGame' => $_SESSION['idGame'],
             'idGamer' => $_SESSION['idGamer'],
             'idEnemy' => $_SESSION['idEnemy'],
-            'startTime' => $_SESSION['startTime'],
-            'queru' => $this->getRating()
+            'startTime' => $_SESSION['startTime']
+         
         ];
         return $this->render('test', ['dots' => $query]);
     }
@@ -300,11 +300,12 @@ class RulingController extends BasisController {
         }
         $query->winner_id = $winner;
         $query->update();
+        
         $query = User::findOne($idGamer1);
-        $query->scores = (int) $query->scores + $score1;
+        $query->scores = (int)$query->scores + $score1;
         $query->update();
         $query = User::findOne($idGamer2);
-        $query->scores = (int) $query->scores + $score2;
+        $query->scores = (int)$query->scores + $score2;
         $query->update();
         return;
     }
