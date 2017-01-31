@@ -57,7 +57,6 @@ function startSimulation() {
     modeSelected();
     simulation = true;
     console.log('simulation on');
-
     drawMap({ latitude: 49.98986319656137, longitude: 36.229476928710945, accuracy: 40, speed: 0});
     watchID = 0;
     map.on('click', onMapClick);
@@ -141,6 +140,7 @@ function stopGame() {
 function startGame() {
     clearInterval(intervalId);
     if (!simulation) {
+        $('#help').text(' ');
         stopWatch();
         watchID = navigator.geolocation.watchPosition(newPosition, error, options);
         console.log(watchID);

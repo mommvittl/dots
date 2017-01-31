@@ -1,24 +1,18 @@
 <?php
-
 namespace app\controllers;
-
 use app\models\Signup;
 use app\models\SignupForm;
+use app\models\User;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
-
 ini_set('session.use_only_cookies',true);
 Yii::$app->session->open();
-
-
 class SiteController extends Controller
 {
-
-
     /**
      * @inheritdoc
      */
@@ -44,7 +38,6 @@ class SiteController extends Controller
             ],
         ];
     }
-
     /**
      * @inheritdoc
      */
@@ -60,7 +53,6 @@ class SiteController extends Controller
             ],
         ];
     }
-
     /**
      * Displays homepage.
      *
@@ -69,16 +61,14 @@ class SiteController extends Controller
     public function actionIndex()
     {
         if (Yii::$app->user->isGuest) {
-            return $this->redirect('/site/login');
+//            return $this->redirect('/site/login');
+            return Yii::$app->runAction('site/login');
         }
         return $this->render('index');
         Yii::$app->session->open();
         $_SESSION['idGamer']= $user->getId();
         $_SESSION['logg']= true;
-
-
     }
-
     /**
      * registration users in db
      *
@@ -86,12 +76,10 @@ class SiteController extends Controller
     public function actionSignup()
     {
         $model = new Signup();
-
         if (isset($_POST['Signup']))
         {
-             //var_dump($_POST['Signup']); die();
+            //var_dump($_POST['Signup']); die();
             $model->attributes = Yii::$app->request->post('Signup');
-
             if ($model->validate())
             {
                 $model->signup();
@@ -100,7 +88,6 @@ class SiteController extends Controller
         }
         return$this->render('signup',['model'=>$model]);
     }
-
     /**
      * Login action.
      *
@@ -110,19 +97,15 @@ class SiteController extends Controller
     {
         if (!Yii::$app->user->isGuest) {
             return $this->goHome();
-
         }
-
         $model = new LoginForm();
         if ($model->load(Yii::$app->request->post()) && $model->login()) {
             return $this->goBack();
         }
-
         return $this->render('login', [
             'model' => $model,
         ]);
     }
-
     /**
      * Logout action.
      *
@@ -131,10 +114,8 @@ class SiteController extends Controller
     public function actionLogout()
     {
         Yii::$app->user->logout();
-
         return $this->goHome();
     }
-
     /**
      * Displays contact page.
      *
@@ -145,14 +126,12 @@ class SiteController extends Controller
         $model = new ContactForm();
         if ($model->load(Yii::$app->request->post()) && $model->contact(Yii::$app->params['adminEmail'])) {
             Yii::$app->session->setFlash('contactFormSubmitted');
-
             return $this->refresh();
         }
         return $this->render('contact', [
             'model' => $model,
         ]);
     }
-
     /**
      * Displays about page.
      *
@@ -162,5 +141,15 @@ class SiteController extends Controller
     {
         return $this->render('about');
     }
-
+    
+    public function actionRating()
+    {
+        $query = User::find()
+            ->select(' `username`,`scores` ')
+            ->where(' `scores` > 0 ')
+            ->orderBy(' `scores` DESC  ')
+            ->asArray()
+            ->all();
+        return $this->render('rating', ['scores' => $query]);
+    }
 }
