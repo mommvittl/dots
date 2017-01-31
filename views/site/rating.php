@@ -20,5 +20,6 @@ $this->title = 'Dots - rating';
             <?php
             endforeach;
             ?>
+        </table>
     </div>
 </div>

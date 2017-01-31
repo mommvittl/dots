@@ -183,7 +183,7 @@ function getData(data){
             data: JSON.stringify(lastIds),
             success: drawData,
             error: error,
-            timeout: 4000
+            timeout: 20000
         });
         requesting = true;
     }
@@ -198,7 +198,7 @@ function sendPoint(points){
             data: JSON.stringify(points),
             success: getData,
             error: error,
-            timeout: 4000
+            timeout: 20000
         });
         requesting = true;
     }
