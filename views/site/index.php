@@ -6,8 +6,6 @@ $this->title = 'Dots';
 $this->registerJsFile('https://unpkg.com/leaflet@1.0.2/dist/leaflet.js', ['position' => yii\web\View::POS_HEAD]);
 $this->registerCssFile('https://unpkg.com/leaflet@1.0.2/dist/leaflet.css');
 $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
-//var_dump($_SESSION);
-var_dump($this->jsFiles);
 
 ?>
 <div class="site-index">
