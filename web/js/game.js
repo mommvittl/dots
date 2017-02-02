@@ -108,7 +108,7 @@ function onMapClick(e) {
     if (!myMarker) {
         myMarker = L.marker(e.latlng).addTo(map);
     }
-    myMarker = setLatLng(e.latlng);
+    myMarker.setLatLng(e.latlng);
     currentPos = {latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
     getReady();
 }
