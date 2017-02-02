@@ -26,13 +26,33 @@ class RoundController extends BasisController {
             $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 2 2 ']);
         }
     }
+    public function actionIndex() {
+        $row = $this->getPossiblePoligon( 7121 );
+         $row[ ] = $row[ 0 ];
+        $strPoli = implode(',', $row);
+        /*
+          $strQuery = ' INSERT INTO `user_has_polygons` SET `user_id` = ' . $this->idGamer . ' , `status` = 1,  `game_id` = ' . $this->idGame . ', `polygon` = PolygonFromText( " POLYGON( ( ' . $strPoli . ' ) ) " ) ' ;
+        */
+         $strQuery = ' INSERT INTO `user_has_polygons` SET `user_id` = :idGamer , `status` = 1,  `game_id` = :idGame, `polygon` = PolygonFromText( " POLYGON( ( ' . $strPoli . ' ) ) " ) ' ;
+         Yii::$app->db->createCommand($strQuery)
+                ->bindValues( [ ':idGamer' => $this->idGamer , ':idGame' => $this->idGame  ] )
+                 ->execute();
+         $idNewDot = Yii::$app->db->createCommand(' SELECT LAST_INSERT_ID() as i ')->queryScalar();
+
+
+
+
+        $query = [ 'row' => $row , 'str' => $str , 'query' => $strQuery , 'id' => $idNewDot  ];
+
+        return $this->render('test', ['dots' => $query]);
+    }
 
     public function actionChangePosition() {
         $startTime = microtime(true);
         $statusGame = $this->getStatusGame();
         if ($statusGame['statusGame'] === FALSE) {
             $this->sendRequest(['status' => 'error', 'message' => 'gameOver.']);
-        }     
+        }
         if ($this->isTimeOut($this->startTime)) {
             $statusGameOver = $this->gameOver();
             $this->sendRequest(['status' => 'error', 'message' => 'TimeOut.']);
@@ -54,6 +74,11 @@ class RoundController extends BasisController {
     }
 
     // ==================================================
+    /**
+     *
+     * @param object $newPosition {'latitude': float, 'longitude': float, 'accuracy': int, 'speed': int}
+     * @return object ['status' => 'error', 'message' => 'error: incorrect input data'] | ['status' => 'ok']
+     */
     protected function gameProcess($newPosition) {
          $t1 =  microtime(true);
         if (!$this->newPositionValidate($newPosition)) {
@@ -98,7 +123,7 @@ class RoundController extends BasisController {
     // --------------------------------------------------------------------------------------------------------------------------------------
     public function actionGetChange() {
         $startTime = microtime(true);
- 
+
         $statusGame = $this->getStatusGame();
         if ($statusGame['statusGame'] === FALSE) {
             $this->sendRequest(['status' => 'gameOver', 'message' => $statusGame]);
@@ -173,23 +198,21 @@ class RoundController extends BasisController {
         Yii::$app->db->createCommand($query)->execute();
         $idNewDot = Yii::$app->db->createCommand(' SELECT LAST_INSERT_ID() ')->queryOne();
 
-        $this->scores++; 
+        $this->scores++;
         return $idNewDot;
     }
-    protected function addPolygon($arrDotsForPolygon) {
-        $len = count($arrDotsForPolygon);
-        $strCoordinates = '';
-        for ($i = 0; $i < $len; $i++) {
-            $strCoordinates .= ' ' . $arrDotsForPolygon[$i]['x'] . ' ' . $arrDotsForPolygon[$i]['y'] . ' , ';
-        }
-        $strCoordinates .= ' ' . $arrDotsForPolygon[0]['x'] . ' ' . $arrDotsForPolygon[0]['y'] . ' ';
-        $query = ' INSERT INTO `user_has_polygons` SET `user_id` =  ' . $this->idGamer;
-        $query .= ' , `status` = 1,  `game_id` =  ' . $this->idGame;
-        $query .= ' , `polygon` = PolygonFromText( " POLYGON( ( ' . $strCoordinates . ' ) ) " )  ';
-        Yii::$app->db->createCommand($query)->execute();
-        $idNewDot = Yii::$app->db->createCommand(' SELECT LAST_INSERT_ID() as i ')->queryOne();
-        return $idNewDot['i'];
+    protected function addPolygon($arrPos) {
+        $arrPos[ ] = $arrPos[ 0 ];
+        $strPoli =  implode(',', $arrPos);
+         $strQuery = ' INSERT INTO `user_has_polygons` SET `user_id` = :idGamer , `status` = 1, '
+                 . ' `game_id` = :idGame, `polygon` = PolygonFromText( " POLYGON( ( ' . $strPoli . ' ) ) " ) ' ;
+         Yii::$app->db->createCommand($strQuery)
+                ->bindValues( [ ':idGamer' => $this->idGamer , ':idGame' => $this->idGame  ] )
+                 ->execute();
+         $idNewDot = Yii::$app->db->createCommand(' SELECT LAST_INSERT_ID() as i ')->queryScalar();
+         return $idNewDot;
     }
+
     protected function inPolygons($position) {
         $query = ' SELECT count(*) as col FROM `user_has_polygons` '
                 . 'WHERE   `status` = 1 AND `game_id` = ' . $this->idGame
@@ -204,13 +227,13 @@ class RoundController extends BasisController {
                 . 'SELECT `id`,`game_id` FROM `user_has_points` WHERE `user_id` = :idGamer '
                 . ' AND  `game_id` = :idGame AND `status` = 1 AND `id` ' . $condition . ' :idDot  ; '
                 . ' UPDATE `user_has_points` SET `status` = 0 WHERE  `user_id` = :idGamer '
-                . ' AND  `game_id` = :idGame AND `status` = 1 AND `id` ' . $condition . ' :idDot  ' ;             
+                . ' AND  `game_id` = :idGame AND `status` = 1 AND `id` ' . $condition . ' :idDot  ' ;
         Yii::$app->db->createCommand( $strQuery  )
                 ->bindValues( [ ':idGamer' => $idGamer , ':idGame' => $this->idGame , ':idDot' => $idDot ] )
                 ->execute();
-        return ;        
+        return ;
     }
-    
+
     protected function cutAllDots( $idGamer ) {
         $strQuery = ' INSERT INTO `deleted_points` ( `point_id`,`game_id` ) '
                 . 'SELECT `id`,`game_id` FROM `user_has_points` WHERE `user_id` = :idGamer '
@@ -219,9 +242,9 @@ class RoundController extends BasisController {
         Yii::$app->db->createCommand( $strQuery  )
                 ->bindValues( [ ':idGamer' => $idGamer , ':idGame' => $this->idGame ] )
                 ->execute();
-        return ; 
+        return ;
     }
-  
+
     protected function repeatVisit($position) {
         $dist = ( $position->accuracy > 20 ) ? $position->accuracy : 20;
         if ($dist > 40) {
@@ -237,11 +260,11 @@ class RoundController extends BasisController {
         return ( $query === FALSE) ? FALSE : $query;
     }
     protected function getPossiblePoligon($idDot = 0) {
-        $strQuery = "SELECT `id`, `user_id`, X( `point` ) as x, Y( `point` ) as y, `accuracy`, `timestamp`, `game_id` "
-                . "  FROM `user_has_points` WHERE "
-                . " `id` >= " . $idDot . " AND `status` = '1' AND `game_id` = " . $this->idGame
-                . " AND `user_id` = " . $this->idGamer;
-        $query = Yii::$app->db->createCommand($strQuery)->queryAll();
+     $strQuery = 'SELECT CONCAT( X( `point` )," ", Y( `point` ) ) as c FROM `user_has_points`'
+             . ' WHERE `game_id` =  :idGame AND `user_id` = :idGamer AND `status` = 1  AND  `id` >= :idDot ' ;
+       $query = Yii::$app->db->createCommand( $strQuery  )
+                ->bindValues( [ ':idGamer' => $this->idGamer , ':idGame' => $this->idGame , ':idDot' => $idDot ] )
+                ->queryColumn();
         return $query;
     }
     protected function getDotsInPolygon($idGamer, $idPolygon) {
@@ -301,7 +324,7 @@ class RoundController extends BasisController {
         if (!is_object($dt2) || !is_object($dt)) {
             return FALSE;
         }
-        $time = $dt2->getTimestamp() - $dt->getTimestamp();    
+        $time = $dt2->getTimestamp() - $dt->getTimestamp();
         return ( $time > 113900 ) ? TRUE : FALSE;
         return FALSE;
     }

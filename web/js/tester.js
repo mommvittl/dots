@@ -231,7 +231,7 @@ function stopGame() {
     modal.style.cssText = "min-width: 80vw;max-width: 100%;min-height: 70vh;max-height: 100%;cursor:pointer;padding:10px;background:#BDBDBD;color:#3B3C1D;text-align:center;font: 1em/2em arial;border: 4px double #1E0D69;position:fixed;z-index: 1000;top:50%;left:50%;transform:translate(-50%, -50%);box-shadow: 6px 6px #14536B;"
     var ok_but = document.getElementById('ok_but');
     var cancel_but = document.getElementById('cancel_but');
-    ok_but.style.cssText = "border-radius:10px; padding: 30px; background:#FFE4E1; cursor:pointer; outline:none; margin-right: 20px;";
+    ok_but.style.cssText = "border-radius:10px; padding: 10px; background:#FFE4E1; cursor:pointer; outline:none; margin-right: 20px;";
     cancel_but.style.cssText = "border-radius:10px; padding: 30px; background:#F5F5DC; cursor:pointer; outline:none; margin-left: 20px;";
     cancel_but.onclick = function () {
         document.body.removeChild(modal);
@@ -498,7 +498,7 @@ function AjaxGETResponse() {
         var req;
         if (window.ActiveXObject) {
             try {
-                req = new ActiveXObject("Microsoft.XMLHTTP");
+                req = new ActiveXObject("Microsoft.XMLHTTP");   
             } catch (e) {
                 req = false;
             }

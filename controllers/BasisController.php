@@ -33,9 +33,6 @@ class BasisController extends \yii\base\Controller {
         echo( json_encode($ajaxRequest) );
         exit;
     }
-
-    //Ф-я проверки залогинености пользователя. Возвращает true/false.
-    //Если результат true записывает idGame, idGamer.
     protected function loggout() {
         $this->idGamer = ( isset($_SESSION['__id']) ) ? (int) $_SESSION['__id'] : 0;
         if (!$this->idGamer) {
@@ -43,16 +40,11 @@ class BasisController extends \yii\base\Controller {
         }
         return $this->existenceUser($this->idGamer);
     }
-
-    // Ф-я проверки существования в таблице `user` юзера с заданным id. Возвращает true/false.
     protected function existenceUser($idUser) {
         $query = 'SELECT count(*)  FROM `user` WHERE `id` = ' . $idUser;
         $col = Yii::$app->db->createCommand($query)->queryScalar();
         return ( $col ) ? TRUE : FALSE;
     }
-
-    // Ф-я проверки существования игры. Возвращает true/false.
-    // Принимает $idGame, $idGamer, $idEnemy
     protected function existenceGame($idGame, $idGamer, $idEnemy) {
         $query = ' SELECT count(*) FROM `game` WHERE `id`= :idGame  and '
                 . ' ( (  `user1_id`= :idGamer AND `user2_id` = :idEnemy ) OR '
@@ -62,10 +54,6 @@ class BasisController extends \yii\base\Controller {
                 ->queryScalar();
         return ( $col ) ? TRUE : FALSE;
     }
-
-    // Ф-я получения состояния игры(игра продолжается или закончена). 
-    // Возвращает [ 'statusGame' => true/false,'winner' => 'me'/'opponent'/'draw'/null,
-    //                           'scoresMe' => scores, 'scoresEnemy' => scores ]
     protected function getStatusGame() {
         $query = \app\models\Game::findOne($this->idGame);
         if (is_null($query->winner_id)) {
@@ -92,16 +80,12 @@ class BasisController extends \yii\base\Controller {
             'scoresMe' => $scoresMe,
             'scoresEnemy' => $scoresEnemy];
     }
-
-    //Ф-я получения данны о игре из переменных сессии.
     protected function getSessVar() {
         $this->idGame = ( isset($_SESSION['idGame']) ) ? (int) $_SESSION['idGame'] : 0;
         $this->idEnemy = ( isset($_SESSION['idEnemy']) ) ? (int) $_SESSION['idEnemy'] : 0;
         $this->startTime = ( isset($_SESSION['startTime']) ) ? $_SESSION['startTime'] : 0;
         return TRUE;
     }
-
-    // Ф-я заполнения переменных $this->idGame $this->idEnemy $this->startTime
     protected function getGameVar() {
         $query = Game::find()
                 ->where(' `user1_id` = :idGamer OR `user2_id`= :idGamer ')

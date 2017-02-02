@@ -11,16 +11,16 @@ class RulingController extends BasisController {
 
     public function actionIndex() {
 
-        $this->getGameVar();
-        
+  /*
+          phpinfo();
         $query = [
             'idGame' => $this->idGame,
             'idGamer' =>$this->idGamer,
             'idEnemy' => $this->idEnemy,
             'startTime' => $this->startTime
-         
+
         ];
-        return $this->render('test', ['dots' => $query]);
+        return $this->render('test', ['dots' => $query]);*/
     }
     public function actionGetReady() {
         $strParameter = file_get_contents('php://input');
@@ -29,7 +29,7 @@ class RulingController extends BasisController {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data']);
         }
         $this->deleteOldReady();
-        $request = $this->updateReady($newPosition);    
+        $request = $this->updateReady($newPosition);
         $request['arrOpponents'] = $this->getOpponents();
         $this->sendRequest($request);
     }
@@ -57,7 +57,7 @@ class RulingController extends BasisController {
         if ($this->idEnemy == $this->idGamer) {
             $this->sendRequest(['status' => 'error: idEnemy ==  idGamer']);
         }
-        $this->addIdEnemy($this->idEnemy, $this->idGamer); 
+        $this->addIdEnemy($this->idEnemy, $this->idGamer);
         $this->addGame($this->idEnemy);
 
         $this->sendRequest(['status' => 'ok']);
@@ -210,7 +210,7 @@ class RulingController extends BasisController {
         }
         $query->winner_id = $winner;
         $query->update();
-        
+
         $query = User::findOne($idGamer1);
         $query->scores = (int)$query->scores + $score1;
         $query->update();
