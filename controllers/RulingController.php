@@ -11,56 +11,29 @@ class RulingController extends BasisController {
 
     public function actionIndex() {
 
-        $this->getWinner( 15 );
+        $this->getGameVar();
+        
         $query = [
-            'idGame' => $_SESSION['idGame'],
-            'idGamer' => $_SESSION['idGamer'],
-            'idEnemy' => $_SESSION['idEnemy'],
-            'startTime' => $_SESSION['startTime']
+            'idGame' => $this->idGame,
+            'idGamer' =>$this->idGamer,
+            'idEnemy' => $this->idEnemy,
+            'startTime' => $this->startTime
          
         ];
         return $this->render('test', ['dots' => $query]);
     }
-
-    // Ф-я обработки запроса ready.  ------------------------------------------------------------------------------------------
-    // Входные данные,json: { 'latitude' : latitude , 'longitude' : longitude, 'accuracy' : accuracy , 'speed' : speed }
-    // Создает ( или обновляет ) запись в таблице ready с передаными координатами . Возвращает json
-    //  { 'opponent' : 0 , 'idGame' : 0 ,  'nick' : nicName ,
-    //   'arrOpponents' : [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ] } 
-    //   arrOpponents - массив потенциальных соперников, у которых есть статус ready .
-    // Если в поле opponent_id записан id соперника - он возвращается в соот.поле ответа вместе с 
-    // idGame. В сессии сохраняются $idGame, $idEnemy, $startTime - id игрока , его противника и 
-    // стартовое время игры. Игра стартовала. Можно отправлять точки на обработку и получать данные
     public function actionGetReady() {
-
-        // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
-
-        // Валидация переданых координат
         if (!$this->newPositionValidate($newPosition)) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data']);
         }
-
-        // Удаление записей в таблице REady, кот. давно обновлялись
         $this->deleteOldReady();
-
-        // Создание новой записи в таблице `ready` или обновление координат, если запись есть
-        // Принимает idGamer, возвращает данные поля opponent_id и idGame
-        $request = $this->updateReady($newPosition);
-
-        // Выборка всех игроков со статусом ready.        
+        $request = $this->updateReady($newPosition);    
         $request['arrOpponents'] = $this->getOpponents();
-
         $this->sendRequest($request);
     }
-
-    // Ф-я отмены статуса ready -----------------------------------------------------------------------------------------------
-    // Удаляет запись из таблицы ready пользователя с id, полученным из сессии, если у него еще
-    // нет оппонента( т.е. поле `opponent_id` -  is null )
     public function actionStopReady() {
-
-        // Удаление записи из таблицы `ready`
         $query = ' DELETE FROM `ready` WHERE `user_id` = :idGamer AND  `opponent_id` is null ';
         $col = Yii::$app->db->createCommand($query)
                 ->bindValues([':idGamer' => $this->idGamer])
@@ -68,65 +41,34 @@ class RulingController extends BasisController {
         $status = ( $col ) ? 'Ok' : 'error';
         $this->sendRequest(['status' => $status]);
     }
-
-    // Ф-я выбора соперника для игры --------------------------------------------------------------------------------------
-    // Получает id выбранного соперника. Если ни игрок ни его выбраный противник не имеют открытых
-    //  игр , то в таблице ready им заполняется поле opponent_id, в таблице game создается новая игра
-    //  Возвращает статус ok/error + message error.
     public function actionEnemySelection() {
-
-        // Создание нового обьекта
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
         $this->idEnemy = (int) $newPosition->idEnemy;
-
-        // Проверка существования противника с таким id
         if (!$this->existenceUser($this->idEnemy)) {
             $this->sendRequest(['status' => 'error: idEnemy  does not exist ']);
         }
-
-        // проверка на отсутствие открытых игр (своих и потенциального противника)
         if ($this->inGame($this->idGamer) || $this->inGame($this->idEnemy)) {
             $this->sendRequest(['status' => 'error: have unfinished games ']);
         }
-
-        // Проверка на готовность противника с переданным id
         if (!$this->isReady($this->idEnemy) || !$this->isReady($this->idGamer)) {
             $this->sendRequest(['status' => 'error: idEnemy or  idGamer its not ready ']);
         }
-
-        // Проверка не играем ли сам с собой
         if ($this->idEnemy == $this->idGamer) {
             $this->sendRequest(['status' => 'error: idEnemy ==  idGamer']);
         }
-
-        // Добавление  id противников друг другу в таблицу ready
-        $this->addIdEnemy($this->idEnemy, $this->idGamer);
-
-        // Создание записи в таблице game  
+        $this->addIdEnemy($this->idEnemy, $this->idGamer); 
         $this->addGame($this->idEnemy);
 
         $this->sendRequest(['status' => 'ok']);
     }
-
-    // Ф-я завершения игры. Удаляет из таблицы ready строки игроков. Определяет победителя 
-    // и корректирует таблицу game
     public function actionStopGame() {
-        // Получение данных из сессии 
-        //    $this->getSessVar();
         $this->getGameVar();
-
-        // Проверка существования игры.
         if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
             $this->sendRequest(['status' => 'error', 'message' => ' error: access denied 2 ']);
         }
-
-        // Удаление записей из таблицы ready
         $this->deleteReady($this->idGamer, $this->idEnemy);
-
-        // определение победителя и обновление таблицы game
         $this->getWinner($this->idGame);
-
         $this->sendRequest(['status' => 'ok']);
     }
 
@@ -142,23 +84,7 @@ class RulingController extends BasisController {
         }
         $this->sendRequest(['status' => 'ok']);
     }
-
-    // Ф-я получения рейтинга всех игроков. Возвращает массив :
-    //[ { "username"=> nicName , "points"=> points } , ...  ] .
-    public function actionRating() {
-        // Получение рейтинга всех игроков 
-        $query = User::find()
-                ->select(' `username`,`scores` ')
-                ->orderBy(' `scores` DESC  ')
-                ->asArray()
-                ->all();
-        $this->sendRequest($query);
-    }
-
-    // Внутренние ф-ии ======================================================
-    // Ф-я обновления/записи в таблицу ready статуса готов и координат юзера 
-    // Принимает обьект с координатами. Возвращает данные поля `opponent_id` или 0,
-    // если запись новая ( соперника пока нет ) и idGame, если `opponent_id` != 0
+    //======================================================
     protected function updateReady($position) {
         $idEnemy = 0;
         $idGame = 0;
@@ -205,9 +131,6 @@ class RulingController extends BasisController {
         }
         return ['opponent' => $idEnemy, 'idGame' => $idGame, 'enemyNic' => $enemyNic];
     }
-
-    // ф-я выбора всех игроков со статусом ready. Возвращает массив
-    // [ { 'id' : id , 'nick' : nick , 'latitude' : latitude , 'longitude' : longitude } , ... ]
     protected function getOpponents() {
         $arrOpponents = [];
         $query = 'SELECT `user_id`, X(`point`) as x, Y(`point`) as y, u.`username`  FROM `ready`, '
@@ -226,16 +149,12 @@ class RulingController extends BasisController {
         }
         return $arrOpponents;
     }
-
-    // Ф-я записи данных новой игры в БД. Принимает idEnemy
     protected function addGame($idEnemy) {
         $query = new \app\models\Game();
         $query->user1_id = $this->idGamer;
         $query->user2_id = $idEnemy;
         $query->save();
     }
-
-    // Ф-я проверки существования открытых игр для переданоого idGamer. Возвращает true/false.
     protected function inGame($idGamer) {
         $query = \app\models\Game::find()
                 ->where('  (`user1_id` = :idGamer OR `user2_id`= :idGamer ) AND `winner_id` IS  NULL ')
@@ -243,8 +162,6 @@ class RulingController extends BasisController {
                 ->count();
         return ( $query ) ? TRUE : FALSE;
     }
-
-    // Ф-я проверки статуса ready у юзера с переданным id. Возвращает true/false.
     protected function isReady($idGamer) {
         $query = \app\models\Ready::find()
                 ->where('  `user_id` = :idGamer AND `opponent_id` IS  NULL ')
@@ -252,8 +169,6 @@ class RulingController extends BasisController {
                 ->count();
         return ( $query ) ? TRUE : FALSE;
     }
-
-    // Ф-я добавление  id противников друг другу в таблицу ready
     protected function addIdEnemy($idEnemy, $idGamer) {
         $query = " UPDATE `ready` SET `opponent_id` = :idEnemy WHERE `user_id` = :idGamer  ";
         Yii::$app->db->createCommand($query)
@@ -263,8 +178,6 @@ class RulingController extends BasisController {
                 ->bindValues([':idGamer' => (int) $idEnemy, ':idEnemy' => (int) $idGamer])
                 ->execute();
     }
-
-    //Ф-я валидации новой позиции. Возвращает true/false.
     protected function newPositionValidate($position) {
 
         if (!is_object($position)) {
@@ -284,9 +197,6 @@ class RulingController extends BasisController {
         };
         return TRUE;
     }
-
-    // Ф-ии метода stopGame ==========================================================
-    // Ф-я определения победителя. Записывает id победителя в таблицу game. Принимает idGame.
     protected function getWinner($idGame) {
         $query = \app\models\Game::findOne((int) $idGame);
         $idGamer1 = (int) $query->user1_id;
@@ -309,15 +219,11 @@ class RulingController extends BasisController {
         $query->update();
         return;
     }
-
-    // Ф-я удаления записей из таблицы ready для участников игры
     protected function deleteReady($idGamer, $idEnemy) {
         Yii::$app->db->createCommand()->delete('ready', ['user_id' => $idGamer, 'opponent_id' => $idEnemy])->execute();
         Yii::$app->db->createCommand()->delete('ready', ['user_id' => $idEnemy, 'opponent_id' => $idGamer])->execute();
         return;
     }
-
-    // Ф-я удаления записей ready, которые обновляли координаты более 12 минут назад.
     protected function deleteOldReady() {
         $updateTime = new \DateTime();
         $delTime = $updateTime->modify('-12 minutes')->format("Y-m-d H:i:s");
