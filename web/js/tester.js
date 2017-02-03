@@ -44,17 +44,21 @@ ymaps.ready(function () {
         center: [49.94, 36.30],
         zoom: 18,
         //  controls: [ 'smallMapDefaultSet'  ]
-      controls: [ "zoomControl" , "fullscreenControl"  ]
+        controls: ["zoomControl", "fullscreenControl"]
     });
-    var myButton = new ymaps.control.Button( {
-    data: {  content: "center"    },  
-    options: {  size: "large"    }
- //   options: {   selectOnClick : false   }
-     });
-   // myButton.events.add( 'press',  function(){  myMap.setCenter([latitude, longitude]);  } );
-   myButton.events.add( 'select',  function(){ center = true;  } ) ;
-   myButton.events.add( 'deselect',  function(){ center = false;  } ) ;
-    myMap.controls.add(myButton, { float: "left" });
+    var myButton = new ymaps.control.Button({
+        data: {content: "center"},
+        options: {size: "large"}
+        //   options: {   selectOnClick : false   }
+    });
+    // myButton.events.add( 'press',  function(){  myMap.setCenter([latitude, longitude]);  } );
+    myButton.events.add('select', function () {
+        center = true;
+    });
+    myButton.events.add('deselect', function () {
+        center = false;
+    });
+    myMap.controls.add(myButton, {float: "left"});
     myPlacemark = new ymaps.Placemark([49.94, 36.30], {iconContent: 'my'}, {preset: 'islands#redStretchyIcon'});
     myMap.geoObjects.add(myPlacemark);
     var idStartPosition = window.navigator.geolocation.getCurrentPosition(getStartPosition, errorPosition, {enableHighAccuracy: true});
@@ -67,7 +71,9 @@ function getStartPosition(position) {
     myMap.setCenter([latitude, longitude]);
 }
 function moveMyPos(latData, lonData) {
-    if( center ){   myMap.setCenter([latData, lonData]); }
+    if (center) {
+        myMap.setCenter([latData, lonData]);
+    }
     myPlacemark.editor.startEditing();
     myPlacemark.geometry.setCoordinates([latData, lonData]);
     myPlacemark.editor.stopEditing();
@@ -86,7 +92,7 @@ function initializationVar() {
 }
 //----------------------------------------------------
 function changePosition() {
-     time = performance.now();
+    time = performance.now();
     var parameter = [{'latitude': latitude, 'longitude': longitude, 'accuracy': accuracy, 'speed': speed}];
     var theParam = JSON.stringify(parameter);
     ajaxPost.setAjaxQuery('/round/change-position', theParam, viewNewPosition, 'POST', 'text');
@@ -154,11 +160,11 @@ function viewGetReady(responseXMLDocument) {
         document.getElementById('informStr').innerHTML = " Найдено  " + len + " игроков .";
         for (var i = 0; i < len; i++) {
             var dist = getDistanse(latitude, longitude, arrOpponents[ i ].latitude, arrOpponents[ i ].longitude);
-            var gamerColor = (dist > 1000) ?'islands#grayStretchyIcon' : 'islands#darkGreenStretchyIcon';
-    //        var gamerColor = (dist > 1000) ? 'islands#grayDotIconWithCaption' : 'islands#darkGreenDotIconWithCaption';
+            var gamerColor = (dist > 1000) ? 'islands#grayStretchyIcon' : 'islands#darkGreenStretchyIcon';
+            //        var gamerColor = (dist > 1000) ? 'islands#grayDotIconWithCaption' : 'islands#darkGreenDotIconWithCaption';
             var cont = arrOpponents[ i ].nick + " distance:  " + dist + " m.";
             var myPlacemark = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude], {iconContent: cont}, {preset: gamerColor});
-    //        var myPlacemark = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude], {iconCaption: cont}, {preset: gamerColor});
+            //        var myPlacemark = new ymaps.Placemark([arrOpponents[ i ].latitude, arrOpponents[ i ].longitude], {iconCaption: cont}, {preset: gamerColor});
             collectionOpponents[i] = myPlacemark;
             if (dist <= 1000) {
                 collectionOpponents[i].events.add('click', selEnemyCommand.bind(arrOpponents[ i ]));
@@ -182,11 +188,11 @@ function removeCollectionOpponents() {
     }
     collectionOpponents = [];
 }
-function redrawDots(){
-    for( var dt in dots ){
-         myMap.geoObjects.remove( dots[ dt ] );         
+function redrawDots() {
+    for (var dt in dots) {
+        myMap.geoObjects.remove(dots[ dt ]);
     }
-    lastDotId = 0; 
+    lastDotId = 0;
     lastDelDotId = 0;
     dots = {};
 }
@@ -285,7 +291,7 @@ function  responseStatusGameOver(response) {
     var statusGame = response.message;
     var stringInform = "Окончание игры. <br> Победитель " + statusGame.winner + "<br> Ваши очки: " + statusGame.scoresMe + "<br> очки соперника: " + statusGame.scoresEnemy;
     clearInterval(timerId);
-    gameOverFlag = true ;
+    gameOverFlag = true;
     modalInformWindow(stringInform);
     removeGame();
 }
@@ -311,17 +317,17 @@ function  viewAddDots(responseData) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddDots.length; i++) {
-        if( !(responseData.arrAddDots[ i ].id in dots) ){
-        var gamerColor = (responseData.arrAddDots[ i ].gamer == 'me') ? "#F4A46077" : "#87CEFA77";
-        var accuracy = (responseData.arrAddDots[ i ].accuracy < 33) ? responseData.arrAddDots[ i ].accuracy : 33;
-        lastDotId = responseData.arrAddDots[ i ].id;
-        dots[ lastDotId ] = new ymaps.Circle(
-                [[responseData.arrAddDots[ i ].latitude, responseData.arrAddDots[ i ].longitude], accuracy],
-                {},
-                {fillColor: gamerColor, strokeOpacity: 0.8, strokeWidth: 1}
-        );
-        myMap.geoObjects.add(dots[ lastDotId ]);
-       }
+        if (!(responseData.arrAddDots[ i ].id in dots)) {
+            var gamerColor = (responseData.arrAddDots[ i ].gamer == 'me') ? "#F4A46077" : "#87CEFA77";
+            var accuracy = (responseData.arrAddDots[ i ].accuracy < 33) ? responseData.arrAddDots[ i ].accuracy : 33;
+            lastDotId = responseData.arrAddDots[ i ].id;
+            dots[ lastDotId ] = new ymaps.Circle(
+                    [[responseData.arrAddDots[ i ].latitude, responseData.arrAddDots[ i ].longitude], accuracy],
+                    {},
+                    {fillColor: gamerColor, strokeOpacity: 0.8, strokeWidth: 1}
+            );
+            myMap.geoObjects.add(dots[ lastDotId ]);
+        }
     }
     return true;
 }
@@ -498,7 +504,7 @@ function AjaxGETResponse() {
         var req;
         if (window.ActiveXObject) {
             try {
-                req = new ActiveXObject("Microsoft.XMLHTTP");   
+                req = new ActiveXObject("Microsoft.XMLHTTP");
             } catch (e) {
                 req = false;
             }

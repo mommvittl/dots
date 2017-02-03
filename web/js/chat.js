@@ -27,7 +27,7 @@ function sendNewMessage() {
     }
 }
 function emptyFunction(responseXMLDocument) {
-  //  alert(responseXMLDocument);
+    //  alert(responseXMLDocument);
 }
 function getMessage(functNameData) {
     var data = JSON.stringify({"lastMessageId": lastMessageId, "firstMessageId": firstMessageId, "functName": functNameData});

@@ -93,8 +93,8 @@ class ChatController extends BasisController {
         $limit = ( $param->firstMessageId == 0) ? 20 : 3;
         $orderBy = ( $param->functName == 'viewUp' ) ? 'id ASC' : 'id DESC';
         $query = Chat::find()
-                ->select( ' `chat`.`id`, `chat`.`data_post`, `chat`.`message`, `user`.`username`  '  )
-                ->innerJoin( ' `user` ', ' `user`.`id` = `chat`.`user_id` ' )
+                ->select(' `chat`.`id`, `chat`.`data_post`, `chat`.`message`, `user`.`username`  ')
+                ->innerJoin(' `user` ', ' `user`.`id` = `chat`.`user_id` ')
                 ->where($where)
                 ->addParams([':idMess' => $idMess])
                 ->orderBy($orderBy)

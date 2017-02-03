@@ -11,17 +11,18 @@ class RulingController extends BasisController {
 
     public function actionIndex() {
 
-  /*
+        /*
           phpinfo();
-        $query = [
-            'idGame' => $this->idGame,
-            'idGamer' =>$this->idGamer,
-            'idEnemy' => $this->idEnemy,
-            'startTime' => $this->startTime
+          $query = [
+          'idGame' => $this->idGame,
+          'idGamer' =>$this->idGamer,
+          'idEnemy' => $this->idEnemy,
+          'startTime' => $this->startTime
 
-        ];
-        return $this->render('test', ['dots' => $query]);*/
+          ];
+          return $this->render('test', ['dots' => $query]); */
     }
+
     public function actionGetReady() {
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
@@ -33,6 +34,7 @@ class RulingController extends BasisController {
         $request['arrOpponents'] = $this->getOpponents();
         $this->sendRequest($request);
     }
+
     public function actionStopReady() {
         $query = ' DELETE FROM `ready` WHERE `user_id` = :idGamer AND  `opponent_id` is null ';
         $col = Yii::$app->db->createCommand($query)
@@ -41,6 +43,7 @@ class RulingController extends BasisController {
         $status = ( $col ) ? 'Ok' : 'error';
         $this->sendRequest(['status' => $status]);
     }
+
     public function actionEnemySelection() {
         $strParameter = file_get_contents('php://input');
         $newPosition = json_decode($strParameter);
@@ -62,6 +65,7 @@ class RulingController extends BasisController {
 
         $this->sendRequest(['status' => 'ok']);
     }
+
     public function actionStopGame() {
         $this->getGameVar();
         if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
@@ -84,6 +88,7 @@ class RulingController extends BasisController {
         }
         $this->sendRequest(['status' => 'ok']);
     }
+
     //======================================================
     protected function updateReady($position) {
         $idEnemy = 0;
@@ -131,6 +136,7 @@ class RulingController extends BasisController {
         }
         return ['opponent' => $idEnemy, 'idGame' => $idGame, 'enemyNic' => $enemyNic];
     }
+
     protected function getOpponents() {
         $arrOpponents = [];
         $query = 'SELECT `user_id`, X(`point`) as x, Y(`point`) as y, u.`username`  FROM `ready`, '
@@ -149,12 +155,14 @@ class RulingController extends BasisController {
         }
         return $arrOpponents;
     }
+
     protected function addGame($idEnemy) {
         $query = new \app\models\Game();
         $query->user1_id = $this->idGamer;
         $query->user2_id = $idEnemy;
         $query->save();
     }
+
     protected function inGame($idGamer) {
         $query = \app\models\Game::find()
                 ->where('  (`user1_id` = :idGamer OR `user2_id`= :idGamer ) AND `winner_id` IS  NULL ')
@@ -162,6 +170,7 @@ class RulingController extends BasisController {
                 ->count();
         return ( $query ) ? TRUE : FALSE;
     }
+
     protected function isReady($idGamer) {
         $query = \app\models\Ready::find()
                 ->where('  `user_id` = :idGamer AND `opponent_id` IS  NULL ')
@@ -169,6 +178,7 @@ class RulingController extends BasisController {
                 ->count();
         return ( $query ) ? TRUE : FALSE;
     }
+
     protected function addIdEnemy($idEnemy, $idGamer) {
         $query = " UPDATE `ready` SET `opponent_id` = :idEnemy WHERE `user_id` = :idGamer  ";
         Yii::$app->db->createCommand($query)
@@ -178,6 +188,7 @@ class RulingController extends BasisController {
                 ->bindValues([':idGamer' => (int) $idEnemy, ':idEnemy' => (int) $idGamer])
                 ->execute();
     }
+
     protected function newPositionValidate($position) {
 
         if (!is_object($position)) {
@@ -197,6 +208,7 @@ class RulingController extends BasisController {
         };
         return TRUE;
     }
+
     protected function getWinner($idGame) {
         $query = \app\models\Game::findOne((int) $idGame);
         $idGamer1 = (int) $query->user1_id;
@@ -212,18 +224,20 @@ class RulingController extends BasisController {
         $query->update();
 
         $query = User::findOne($idGamer1);
-        $query->scores = (int)$query->scores + $score1;
+        $query->scores = (int) $query->scores + $score1;
         $query->update();
         $query = User::findOne($idGamer2);
-        $query->scores = (int)$query->scores + $score2;
+        $query->scores = (int) $query->scores + $score2;
         $query->update();
         return;
     }
+
     protected function deleteReady($idGamer, $idEnemy) {
         Yii::$app->db->createCommand()->delete('ready', ['user_id' => $idGamer, 'opponent_id' => $idEnemy])->execute();
         Yii::$app->db->createCommand()->delete('ready', ['user_id' => $idEnemy, 'opponent_id' => $idGamer])->execute();
         return;
     }
+
     protected function deleteOldReady() {
         $updateTime = new \DateTime();
         $delTime = $updateTime->modify('-12 minutes')->format("Y-m-d H:i:s");
