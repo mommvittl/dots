@@ -1,3 +1,4 @@
+var simulation = false;
 var point = null;
 var points = [];
 var currentPos = null;
@@ -20,7 +21,6 @@ var opponents = [];
 var opponentId = 0;
 var intervalId = null;
 var myRadius = 0;
-var simulation = false;
 var ready = false;
 var simulateInterval = null;
 var enemyMarker = null;
@@ -42,44 +42,41 @@ var greyIcon = L.icon({
     iconAnchor: [12.5, 41]
 });
 
+// Задает вспомогательный текст для пользователя
+function changeHelpText(text) {
+    $('#help').text(text);
+}
+
+// Определяет текущую позицию
 function startGPS() {
     modeSelected();
     navigator.geolocation.getCurrentPosition(drawMap, errorCurrent);
-    $('#help').text('Getting your position...');
+    changeHelpText('Getting your position...');
 }
 
-function errorCurrent(err) {
-    console.log('ERROR(' + err.code + '): ' + err.message);
+// Если позиция не определена, перезапускается определение текущей позиции
+function errorCurrent() {
     startGPS();
 }
 
+// Включение режима симуляции. Отрисовка карты с заданной позицией (центр Харькова)
 function startSimulation() {
     modeSelected();
     simulation = true;
-    console.log('simulation on');
     drawMap({ latitude: 49.98986319656137, longitude: 36.229476928710945, accuracy: 40, speed: 0});
     watchID = 0;
     map.on('click', onMapClick);
-    $('#help').text('Click on map');
+    changeHelpText('Click on map');
     bindKeys();
 }
 
-function onMapClick(e) {
-    // console.log(e);
-    if (myMarker) {
-        removeMarkers();
-    }
-    myMarker = L.marker(e.latlng).addTo(map);
-    currentPos = { latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
-    getReady();
-    // $('#ready').removeAttr('disabled');
-}
-
+// Смена декораций
 function modeSelected() {
     $('#mode').attr('hidden', 'true');
     $('#game').removeAttr('hidden');
 }
 
+// Отрисовка карты и маркера игрока
 function drawMap(pos) {
     var center = pos;
     if (!simulation) {
@@ -87,7 +84,6 @@ function drawMap(pos) {
         currentPos = pos.coords;
     }
     if (!map) {
-        // $('#mapid').empty();
         map = L.map('mapid', {center: [center.latitude, center.longitude], zoom: 12});
         L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
             maxZoom: 18,
@@ -102,48 +98,42 @@ function drawMap(pos) {
                 fillOpacity: 0.25,
                 radius: center.accuracy
             }).addTo(map);
-            // $('#ready').removeAttr('disabled');
             getReady();
         }
     }
 }
 
+// Определяет текущую позицию и добавляет маркер на карту
+function onMapClick(e) {
+    if (!myMarker) {
+        myMarker = L.marker(e.latlng).addTo(map);
+    }
+    myMarker.setLatLng(e.latlng);
+    currentPos = {latitude: e.latlng.lat, longitude: e.latlng.lng, accuracy: 40, speed: 0};
+    getReady();
+}
+
+// Запускает слежение и активирует интервал обновления позиции
 function getReady() {
     if (!simulation) {
-        watchID = navigator.geolocation.watchPosition(setCurrentPos, error, options);
-        console.log(watchID);
+        watchID = navigator.geolocation.watchPosition(setCurrentPos, errorNavigate, options);
     }
     ready = true;
     sendPosition();
     intervalId = setInterval(sendPosition, 15000);
-
-    // $('#ready').attr('onclick', 'stopReady()').text('unready');
-}
-/*
-function stopReady() {
-    stopWatch();
-    ready = false;
-    removeMarkers();
-    clearInterval(intervalId);
-    $('#ready').attr('onclick', 'getReady()').text('ready');
-}*/
-
-function stopGame() {
-    $.ajax({
-        type: 'POST',
-        url: "/ruling/stop-game",
-        success: getData,
-        timeout: 4000
-    });
 }
 
+function errorNavigate() {
+
+}
+
+// Запуск игры
 function startGame() {
     clearInterval(intervalId);
     if (!simulation) {
-        $('#help').text(' ');
+        changeHelpText(' ');
         stopWatch();
-        watchID = navigator.geolocation.watchPosition(newPosition, error, options);
-        console.log(watchID);
+        watchID = navigator.geolocation.watchPosition(newPosition, errorNavigate, options);
         intervalId = setInterval(getData, 5000);
     } else {
         $('#help').text('Press A,S,W,D to move..');
@@ -161,6 +151,16 @@ function startGame() {
     }).addTo(map);
     $('#gameover').removeAttr('hidden');
     getData();
+}
+
+// Остановка игры
+function stopGame() {
+    $.ajax({
+        type: 'POST',
+        url: "/ruling/stop-game",
+        success: getData,
+        timeout: 4000
+    });
 }
 
 function getData(data){
@@ -183,14 +183,13 @@ function getData(data){
             data: JSON.stringify(lastIds),
             success: drawData,
             error: error,
-            timeout: 20000
+            timeout: 4000
         });
         requesting = true;
     }
 }
 
 function sendPoint(points){
-    // console.log(points);
     if (!requesting) {
         $.ajax({
             type: 'POST',
@@ -204,8 +203,11 @@ function sendPoint(points){
     }
 }
 
+function error() {
+    requesting = false;
+}
+
 function drawOpponents(data) {
-    // console.log(data);
     if (data.status && data.status == "error") {
         return false;
     }
@@ -213,7 +215,7 @@ function drawOpponents(data) {
         startGame();
         return true;
     } else {
-        $('#help').text('Choose your opponent...');
+        changeHelpText('Choose your opponent...');
         var arrOpponents = data.arrOpponents;
         var myPoint = L.latLng(currentPos.latitude, currentPos.longitude);
         removeMarkers();
@@ -254,9 +256,7 @@ function removeMarkers() {
     map.removeLayer(myRadius);
     myMarker = null;
 }
-
 function selectedOpponent() {
-    console.log("SELECTED");
     if (this.options.id) {
         opponentId = this.options.id;
         return enemySelect();
@@ -278,6 +278,7 @@ function enemySelect() {
     }
 }
 
+
 function sendPosition(){
     var point = {
         'latitude': currentPos.latitude,
@@ -285,7 +286,6 @@ function sendPosition(){
         'accuracy': currentPos.accuracy,
         'speed': currentPos.speed
     };
-    // console.log(point);
     $.ajax({
         type: 'POST',
         url: "/ruling/get-ready",
@@ -296,7 +296,6 @@ function sendPosition(){
 }
 
 function drawData(data) {
-    console.log(data);
     requesting = false;
     points = [];
     $('#error').empty().attr('hidden');
@@ -352,7 +351,6 @@ function addDots(dots) {
                 radius: dots[i].accuracy
             }).addTo(map);
             lastDot = {latitude: dots[i].latitude, longitude: dots[i].longitude, accuracy: dots[i].accuracy};
-            // console.log(lastDot);
         } else {
             opponentDots[dots[i].id] = L.circle([dots[i].latitude, dots[i].longitude], {
                 color: 'red',
@@ -445,7 +443,6 @@ function bindKeys() {
 }
 
 function stopWatch() {
-    console.log(watchID);
     navigator.geolocation.clearWatch(watchID);
     watchID = null;
     clearInterval(intervalId);
@@ -455,13 +452,11 @@ function stopWatch() {
 function setCurrentPos(pos) {
     currentPos = pos.coords;
 }
-
 function newPosition(pos) {
     if (!simulation) {
         currentPos = pos.coords;
     }
     if (!lastDot) {
-        console.log('RESET');
         lastDot = {latitude: currentPos.latitude, longitude: currentPos.longitude, accuracy: currentPos.accuracy, speed: currentPos.speed};
         lastDot.accuracy = -1;
     }
@@ -470,47 +465,20 @@ function newPosition(pos) {
     }
     currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
     lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
-    // console.log(currentPoint);
     if (!myMarker) {
         myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
     } else {
         myMarker.setLatLng([currentPos.latitude, currentPos.longitude]);
     }
     var distance = currentPoint.distanceTo(lastPoint);
-    // console.log(currentPoint);
-    // console.log(lastPoint);
-    // console.log(distance);
-    // if (distance > lastDot.accuracy) {
     if (distance >= 20) {
-        // if (distance < 50) {
-            point = {
-                'latitude': currentPos.latitude,
-                'longitude': currentPos.longitude,
-                'accuracy': currentPos.accuracy,
-                'speed': currentPos.speed
-            };
-            points = [point];
-            sendPoint(points);/*
-        } else {
-            var count = parseInt(distance / 50);
-            latitudeInc = (currentPos.latitude - lastDot.latitude) / count;
-            longitudeInc = (currentPos.longitude - lastDot.longitude) / count;
-            for (var i=1; i <= count; i++) {
-                point = {
-                    'latitude': parseFloat(lastDot.latitude) + (latitudeInc * i),
-                    'longitude': parseFloat(lastDot.longitude) + (longitudeInc * i),
-                    'accuracy': lastDot.accuracy,
-                    'speed': lastDot.speed
-                };
-                points[points.length] = point;
-            }
-            sendPoint(points);
-            lastDot = {latitude: currentPos.latitude, longitude: currentPos.longitude, accuracy: currentPos.accuracy};
-        }*/
+        point = {
+            'latitude': currentPos.latitude,
+            'longitude': currentPos.longitude,
+            'accuracy': currentPos.accuracy,
+            'speed': currentPos.speed
+        };
+        points = [point];
+        sendPoint(points);
     }
-}
-
-function error(err) {
-    console.log('ERROR(' + err.code + '): ' + err.message);
-    requesting = false;
 }
