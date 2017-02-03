@@ -10,6 +10,7 @@ use yii\web\Controller;
 use yii\filters\VerbFilter;
 use app\models\LoginForm;
 use app\models\ContactForm;
+use app\models\User;
 
 ini_set('session.use_only_cookies',true);
 Yii::$app->session->open();
@@ -161,6 +162,18 @@ class SiteController extends Controller
     public function actionAbout()
     {
         return $this->render('about');
+    }
+    
+    // Ф-я получения рейтинга всех игроков. Возвращает массив :
+    //[ { "username"=> nicName , "points"=> points } , ...  ] .
+    public function actionRating() {
+        // Получение рейтинга всех игроков 
+        $query = User::find()
+                ->select(' `username`,`scores` ')
+                ->orderBy(' `scores` DESC  ')
+                ->asArray()
+                ->all();
+         return $this->render('rating', [ 'query' => $query  ]);
     }
 
 }
