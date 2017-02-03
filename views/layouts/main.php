@@ -55,6 +55,11 @@ AppAsset::register($this);
                  ['label' => 'tester', 'url' => ['/site/login']]
             ) : (
                  ['label' => 'tester', 'url' => ['/simulator/tester']]
+            ),
+                 Yii::$app->user->isGuest ? (
+                 ['label' => 'chat', 'url' => ['/site/login']]
+            ) : (
+                 ['label' => 'chat', 'url' => ['/chat/index']]
             )
         ],
     ]);
@@ -71,7 +76,7 @@ AppAsset::register($this);
 
 <footer class="footer">
     <div class="container">
-        <p class="pull-left">&copy; My Company <?= date('Y') ?></p>
+        <p class="pull-left">&copy; Dots <?= date('Y') ?></p>
 
         <p class="pull-right"><?= Yii::powered() ?></p>
     </div>

@@ -63,6 +63,14 @@ CREATE TABLE `user_has_polygons` (
   `status` int(1)  DEFAULT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
+DROP TABLE IF EXISTS `chat`;
+CREATE TABLE `chat`
+(
+  `id` int(20) unsigned NOT NULL auto_increment PRIMARY KEY,
+  `data_post`  timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+   `user_id` int(10) UNSIGNED DEFAULT NULL,
+  `message` text DEFAULT NULL   
+);
 -- --------------------------------------------------------
 
 --

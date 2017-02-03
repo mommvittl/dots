@@ -27,23 +27,7 @@ class RoundController extends BasisController {
         }
     }
     public function actionIndex() {
-        $row = $this->getPossiblePoligon( 7121 );
-         $row[ ] = $row[ 0 ];
-        $strPoli = implode(',', $row);
-        /*
-          $strQuery = ' INSERT INTO `user_has_polygons` SET `user_id` = ' . $this->idGamer . ' , `status` = 1,  `game_id` = ' . $this->idGame . ', `polygon` = PolygonFromText( " POLYGON( ( ' . $strPoli . ' ) ) " ) ' ;
-        */
-         $strQuery = ' INSERT INTO `user_has_polygons` SET `user_id` = :idGamer , `status` = 1,  `game_id` = :idGame, `polygon` = PolygonFromText( " POLYGON( ( ' . $strPoli . ' ) ) " ) ' ;
-         Yii::$app->db->createCommand($strQuery)
-                ->bindValues( [ ':idGamer' => $this->idGamer , ':idGame' => $this->idGame  ] )
-                 ->execute();
-         $idNewDot = Yii::$app->db->createCommand(' SELECT LAST_INSERT_ID() as i ')->queryScalar();
-
-
-
-
-        $query = [ 'row' => $row , 'str' => $str , 'query' => $strQuery , 'id' => $idNewDot  ];
-
+        $query = 35;
         return $this->render('test', ['dots' => $query]);
     }
 
