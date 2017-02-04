@@ -12,8 +12,13 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
 
     <div class="body-content">
         <div id="mode">
-            <button onclick="startGPS()">With GPS</button>
-            <button onclick="startSimulation()">simulation</button>
+            <div class="btn-block">
+                <button type="button" class="btn btn-success btn-lg btn-block" onclick="startGPS()">With GPS</button>
+                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="startSimulation()">Simulation</button>
+            </div>
+<!--            <div id="homeImage" class="row">-->
+                <img id="homeImage" src="/images/dots.png" alt="dots">
+<!--            </div>-->
         </div>
         <div id="game" hidden>
             <div class="row">

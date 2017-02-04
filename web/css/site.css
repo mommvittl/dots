@@ -121,3 +121,14 @@ a.desc:after {
 #players {
     width: 100%;
 }
+
+#homeImage {
+    display: block;
+    margin: 10px auto;
+    max-width: 500px;
+}
+
+.btn-block {
+    margin: auto;
+    max-width: 500px;
+}
