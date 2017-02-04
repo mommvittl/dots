@@ -31,7 +31,7 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
                 </div>
             </div>
             <div id="error" class="alert alert-danger" role="alert" hidden></div>
-            <div class="row">
+            <div class="row" id="map">
                 <div class="col-sm-8" id="mapid"></div>
                 <div id="prepare" class="col-sm-4">
                     <div class="row ">

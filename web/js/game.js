@@ -227,9 +227,10 @@ function startGame() {
         simulateInterval = setInterval(getData, 5000);
     }
     $('#prepare').remove();
-    $('#mapid').attr('class', 'col-sm-12');
     removeMarkers();
     map.remove();
+    $('#mapid').remove();
+    $('#map').append('<div class="col-sm-12" id="mapid">');
     map = L.map('mapid', {center: [currentPos.latitude, currentPos.longitude], zoom: 14});
     L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         maxZoom: 18,
