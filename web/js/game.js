@@ -24,6 +24,10 @@ var simulateInterval = null;
 var enemyMarker = null;
 var icon = null;
 var requesting = false;
+var slider = null;
+var startSlider = null;
+var endSlider = null;
+var replayInterval = null;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
@@ -69,11 +73,65 @@ function startSimulation() {
     bindKeys();
 }
 
+function timestamp(str){
+    return new Date(str).getTime();
+}
+
+function timestampToTime(timestamp) {
+    var date = new Date(timestamp);
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+    return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+}
+
+function startReplay() {
+    $('#mode').attr('hidden', 'true');
+    $('#replay').removeAttr('hidden');
+    startSlider = timestamp('2017-02-01 12:00:43');
+    endSlider = timestamp('2017-02-01 12:00:53');
+    slider = document.getElementById('slider');
+    var sliderVal = document.getElementById('slider-val');
+    $('#slider-start').text(timestampToTime(parseInt(startSlider)));
+    $('#slider-end').text(timestampToTime(parseInt(endSlider)));
+    noUiSlider.create(slider, {
+        start: startSlider,
+        behaviour: 'snap',
+        connect: [true, false],
+        step: 1,
+        direction: 'ltr',
+        range: {
+            'min': startSlider,
+            'max':  endSlider
+        }
+    });
+    slider.noUiSlider.on('change', function( value ){
+        if (!replayInterval) {
+            replayInterval = setInterval(nextStep, 1000);
+        }
+        sliderVal.innerHTML = timestampToTime(parseInt(value));
+    });
+    if (!replayInterval) {
+        replayInterval = setInterval(nextStep, 1000);
+    }
+}
+
+function nextStep() {
+    var value = parseInt(slider.noUiSlider.get()) + 1000;
+    if (value >= endSlider) {
+        clearInterval(replayInterval);
+        replayInterval = null;
+    }
+    slider.noUiSlider.set(value);
+}
+
 // Смена декораций
 function modeSelected() {
     $('#mode').attr('hidden', 'true');
     $('#game').removeAttr('hidden');
 }
+
+
 
 // Отрисовка карты и маркера игрока
 function drawMap(pos) {
@@ -169,7 +227,7 @@ function drawOpponents(data) {
             var text = arrOpponents[j].nick + " ( " + distance + " m )";
             opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude],
                 {icon: icon, id: arrOpponents[j].id})
-                .addTo(map).bindTooltip(arrOpponents[j].nick).openTooltip();
+                .addTo(map).bindTooltip(arrOpponents[j].nick + "<br>( " + distance + " m )").openTooltip();
             opponents[j].on('click', selectedOpponent);
             $('#players').append($('<option>', {
                 value: arrOpponents[j].id,
