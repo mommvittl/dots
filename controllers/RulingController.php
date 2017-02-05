@@ -2,10 +2,10 @@
 
 namespace app\controllers;
 
-use app\models\User;
 use Yii;
 use app\controllers\BasisController;
 use app\models\Game;
+use app\models\User;
 
 class RulingController extends BasisController {
 
@@ -20,7 +20,10 @@ class RulingController extends BasisController {
           'startTime' => $this->startTime
 
           ];
-          return $this->render('test', ['dots' => $query]); */
+          */
+        $query = $this->actionGetGamelist();
+      
+         return $this->render('test', ['dots' => $query]);
     }
 
     public function actionGetReady() {
@@ -87,6 +90,18 @@ class RulingController extends BasisController {
             unset($_SESSION['startTime']);
         }
         $this->sendRequest(['status' => 'ok']);
+    }
+
+    public function actionGetGamelist() {
+        $query = Game::find()
+                ->select( 'g.id, u1.username as gm1, u2.username as gm2,`start_time`,'
+                        . '`stop_time`, u3.username as wn,`user1_scores`,`user2_scores`' )
+                ->from( '`game` as g , `user` as u1, `user` as u3, `user`as u2' )
+                ->where( 'g.`user1_id` = u1.id AND g.`user2_id` = u2.id AND g.`winner_id` = u3.id AND g.id > 100' )
+               ->asArray()
+                ->all();
+        return $query;
+         $this->sendRequest([ 'status' => 'ok' , 'arrHistoryGame' => $query ]);
     }
 
     //======================================================
@@ -210,6 +225,7 @@ class RulingController extends BasisController {
     }
 
     protected function getWinner($idGame) {
+        $updateTime = new \DateTime();
         $query = \app\models\Game::findOne((int) $idGame);
         $idGamer1 = (int) $query->user1_id;
         $idGamer2 = (int) $query->user2_id;
@@ -221,6 +237,7 @@ class RulingController extends BasisController {
             $winner = 0;
         }
         $query->winner_id = $winner;
+        $query->stop_time = $updateTime->format('Y-m-d H:i:s') ;
         $query->update();
 
         $query = User::findOne($idGamer1);

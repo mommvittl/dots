@@ -2,6 +2,7 @@
 namespace app\controllers;
 use app\models\Signup;
 use app\models\User;
+use app\models\Game;
 use Yii;
 use yii\filters\AccessControl;
 use yii\web\Controller;
@@ -134,7 +135,7 @@ class SiteController extends Controller
     {
         return $this->render('about');
     }
-    
+
     public function actionRating()
     {
         $query = User::find()
@@ -145,4 +146,16 @@ class SiteController extends Controller
             ->all();
         return $this->render('rating', ['scores' => $query]);
     }
+
+     public function actionTesterhistory() {
+         $query = Game::find()
+                ->select( 'g.id as id, g.user1_id as idg1,  g.user2_id as idg2, u1.username as gm1, u2.username as gm2,`start_time`,'
+                        . '`stop_time`, u3.username as wn,`user1_scores`,`user2_scores`' )
+                ->from( '`game` as g , `user` as u1, `user` as u3, `user`as u2' )
+                ->where( 'g.`user1_id` = u1.id AND g.`user2_id` = u2.id AND g.`winner_id` = u3.id' )
+               ->asArray()
+                ->all();
+         return $this->render('testerhistory', ['games' => $query]);
+    }
+
 }
