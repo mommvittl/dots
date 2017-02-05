@@ -14,4 +14,10 @@ body { background:#FDF5E6; position: relative; }
 .dataMessStr span:last-child { float:right; }
 .messStr { background: #F1F8E0; color: #61380B;padding: 5px;}
 
-
+.winner { color: red; }
+.loser { color: blue; }
+.positionControlBut {  position: fixed; bottom: 0; left: 0; width: 100%; z-index: 1000; }
+#processing {   height: 30px; width: 100%; color: blue; background-color: white; }
+.controlViewHistoryDiv { bacground-color: red; text-align: center; }
+.spanControl { font-size: 90px; text-align: center;  display: table-cell; width: auto;  }
+#controltable { width: 100%; font-size: 50px; text-align: center;  }

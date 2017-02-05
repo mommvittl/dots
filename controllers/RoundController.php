@@ -17,7 +17,7 @@ class RoundController extends BasisController {
     protected $arrIdDeletePolygon = [];
     protected $lastDelDotId = 0;
     protected $lastDelPolygonId = 0;
-    protected $scores = 0; // Заработанные в этом вызове очки
+    protected $scores = 0;
 
     public function __construct($id, $module, $config = []) {
         parent::__construct($id, $module, $config);

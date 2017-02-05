@@ -147,7 +147,7 @@ class SiteController extends Controller
         return $this->render('rating', ['scores' => $query]);
     }
 
-     public function actionTesterhistory() {
+     public function actionHistory() {
          $query = Game::find()
                 ->select( 'g.id as id, g.user1_id as idg1,  g.user2_id as idg2, u1.username as gm1, u2.username as gm2,`start_time`,'
                         . '`stop_time`, u3.username as wn,`user1_scores`,`user2_scores`' )
@@ -155,7 +155,7 @@ class SiteController extends Controller
                 ->where( 'g.`user1_id` = u1.id AND g.`user2_id` = u2.id AND g.`winner_id` = u3.id' )
                ->asArray()
                 ->all();
-         return $this->render('testerhistory', ['games' => $query]);
+         return $this->render('history', ['games' => $query]);
     }
 
 }
