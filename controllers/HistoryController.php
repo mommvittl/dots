@@ -165,9 +165,8 @@ class HistoryController extends BasisController {
                 ->all();
         foreach ($query as $value) {
             $deleteDots[] = ['id' => $value['point_id']];
-            $newLastId = $value['id'];
         }
-        return [$newLastId, $deleteDots];
+        return $deleteDots;
     }
 
     protected function getPolygonForDelete($prevLastId = 0) {
@@ -186,9 +185,8 @@ class HistoryController extends BasisController {
                 ->all();
         foreach ($query as $value) {
             $deletePolygon[] = ['id' => $value['polygon_id']];
-            $newLastId = $value['id'];
         }
-        return [$newLastId, $deletePolygon];
+        return $deletePolygon;
     }
 
 }
