@@ -19,19 +19,22 @@ class HistoryController extends BasisController {
     protected $stopTime;
 
     public function actionIndex() {
-        $row = $this->actionGetHistorylist();
-        var_dump(  $row  );
+        $query = $this->actionGetHistorylist();
+
+        var_dump($query);
     }
 
-     public function actionGetHistorylist() {
-         $query = Game::find()
-                ->select( 'g.id as id, g.user1_id as idg1,  g.user2_id as idg2, u1.username as gm1, u2.username as gm2,`start_time`,'
-                        . '`stop_time`, u3.username as wn,`user1_scores`,`user2_scores`' )
-                ->from( '`game` as g , `user` as u1, `user` as u3, `user`as u2' )
-                ->where( 'g.`user1_id` = u1.id AND g.`user2_id` = u2.id AND g.`winner_id` = u3.id' )
-               ->asArray()
+    public function actionGetHistorylist() {
+        $query = Game::find()
+                ->select(' g.`id` as idGame,g.`user1_scores`,g.`user2_scores`, u1.username as user1_name,'
+                        . ' u2.username as user2_name,u3.username as winner_name ')
+                ->from('`game`as g , `user` as u1, `user` as u2, `user` as u3 ')
+                ->where(' (g.`user1_id` = :idGamer OR g.`user2_id` = :idGamer) and u1.id = g.`user1_id`'
+                        . ' and u2.id = g.`user2_id` and u3.id = g.`winner_id`')
+                ->addParams([':idGamer' => $this->idGamer])
+                ->asArray()
                 ->all();
-          $this->sendRequest(['status' => 'ok', 'historyList' => $query ]);
+        $this->sendRequest(['status' => 'ok', 'historyList' => $query]);
     }
 
     public function actionHistory() {
@@ -71,10 +74,9 @@ class HistoryController extends BasisController {
     //=============================================================================
     protected function timingValidate($param) {
 
-        if (!is_array($param) || !isset($param['idGame']) || !isset($param['idGamer']) || !isset($param['idEnemy']) || !isset($param['startTime']) || !isset($param['stopTime'])) {
+        if (!is_array($param) || !isset($param['idGame']) || !isset($param['startTime']) || !isset($param['stopTime'])) {
             return FALSE;
         }
-
         if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param['startTime'])) {
             return FALSE;
         }
@@ -82,12 +84,19 @@ class HistoryController extends BasisController {
             return FALSE;
         }
         $this->idGame = (int) $param['idGame'];
-        $this->idGamer = (int) $param['idGamer'];
-        $this->idEnemy = (int) $param['idEnemy'];
         $this->startTime = $param['startTime'];
         $this->stopTime = $param['stopTime'];
 
-        return $this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy);
+        return $this->existenceGame($this->idGame);
+    }
+
+    protected function existenceGame($idGame) {
+        $query = Game::find()
+                ->select('count(*)')
+                ->where(' `id` = :idGame AND ( `user1_id` = :idGamer OR `user2_id` = :idGamer ) ')
+                ->addParams([':idGamer' => $this->idGamer, 'idGame' => $idGame])
+                ->count();
+        return ( $query ) ? TRUE : FALSE;
     }
 
     protected function getDotsForAdd() {

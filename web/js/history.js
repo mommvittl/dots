@@ -19,9 +19,9 @@ historyTable.onclick = function (event) {
 };
 function  mainFunction(){
  
-      var theParam = JSON.stringify({ 'idGame': idGame, 'idGamer': idGamer1, 'idEnemy': idGamer2,  'startTime': '2017-02-02 21:29:30', 'stopTime': '2017-02-02 21:29:52' });
+      var theParam = JSON.stringify({ 'idGame': idGame, 'startTime': '2017-02-02 21:29:30', 'stopTime': '2017-02-02 21:29:52' });
     $.ajax({   type: 'POST', url: "/history/history",  data:  theParam ,   success: getResponseScript,    timeout: 9000  });
-       alert( 'idGame: ' + idGame + ' idGamer1: ' + idGamer1 + ' idGamer2: ' + idGamer2 + ' startTime: ' + startTime + ' stopTime: ' + stopTime );
+       alert( 'idGame: ' + idGame +  ' startTime: ' + startTime + ' stopTime: ' + stopTime );
 }
 //================================================================================
 function getResponseScript(response) {
