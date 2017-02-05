@@ -7,6 +7,7 @@ use app\models\User_has_polygons;
 use app\models\Deleted_points;
 use app\models\Deleted_polygons;
 use app\controllers\BasisController;
+use app\models\Game;
 
 class HistoryController extends BasisController {
 
@@ -18,7 +19,19 @@ class HistoryController extends BasisController {
     protected $stopTime;
 
     public function actionIndex() {
+        $row = $this->actionGetHistorylist();
+        var_dump(  $row  );
+    }
 
+     public function actionGetHistorylist() {
+         $query = Game::find()
+                ->select( 'g.id as id, g.user1_id as idg1,  g.user2_id as idg2, u1.username as gm1, u2.username as gm2,`start_time`,'
+                        . '`stop_time`, u3.username as wn,`user1_scores`,`user2_scores`' )
+                ->from( '`game` as g , `user` as u1, `user` as u3, `user`as u2' )
+                ->where( 'g.`user1_id` = u1.id AND g.`user2_id` = u2.id AND g.`winner_id` = u3.id' )
+               ->asArray()
+                ->all();
+          $this->sendRequest(['status' => 'ok', 'historyList' => $query ]);
     }
 
     public function actionHistory() {
@@ -90,7 +103,7 @@ class HistoryController extends BasisController {
                 ->orderBy(' `id` ASC ')
                 ->asArray()
                 ->all();
-     
+
         foreach ($query as $value) {
             $gamer = ( $value['user_id'] == $this->idGamer ) ? 'me' : 'opponent';
             $dots[] = [
