@@ -1,6 +1,6 @@
 <?php
 $this->title = 'Dots - history';
-$this->registerJsFile('/web/js/history.js', ['position' => yii\web\View::POS_END]);
+// $this->registerJsFile('/web/js/history.js', ['position' => yii\web\View::POS_END]);
 
 ?>
 <div class="site-rating" id="tableContent">

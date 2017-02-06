@@ -36,7 +36,11 @@ class RoundController extends BasisController {
         $query = $this->countDot(662, 11);
         return $this->render('test', ['dots' => $query]);
     }
-
+     /**
+     *
+     * @param object  [{'latitude': float, 'longitude': float, 'accuracy': int, 'speed': int}, ... ]
+     * @return object ['status' => 'error', 'message' => 'error: incorrect input data'] | ['status' => 'ok']
+     */
     public function actionChangePosition() {
         $startTime = microtime(true);
         $statusGame = $this->getStatusGame();
