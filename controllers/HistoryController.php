@@ -72,13 +72,13 @@ class HistoryController extends BasisController {
     //=============================================================================
     protected function timingValidate($param) {
 
-        if (!is_array($param) || !isset($param['idGame']) || !isset($param['startTime']) || !isset($param['stopTime'])) {
+        if (!is_object($param) || !isset($param->idGame) || !isset($param->startTime) || !isset($param->stopTime)) {
             return FALSE;
         }
-        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param['startTime'])) {
+        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param->startTime)) {
             return FALSE;
         }
-        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param['stopTime'])) {
+        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param->stopTime)) {
             return FALSE;
         }
         $this->idGame = (int) $param->idGame;
