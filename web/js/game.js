@@ -28,6 +28,13 @@ var slider = null;
 var startSlider = null;
 var endSlider = null;
 var replayInterval = null;
+var list = null;
+var sliderVal = null;
+var idGame = null;
+var lastDate = null;
+var step = 1000;
+var replay = null;
+var layer = null;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
@@ -85,13 +92,54 @@ function timestampToTime(timestamp) {
     return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
 }
 
-function startReplay() {
+function getHistory() {
     $('#mode').attr('hidden', 'true');
+    $('#history').removeAttr('hidden');
+
+    $.ajax({
+        type: 'POST',
+        url: "/history/get-historylist",
+        data: JSON.stringify(),
+        success: drawHistory,
+        timeout: 9000
+    });
+}
+
+function drawHistory(data) {
+    list = data.historyList;
+    for (var i=0; i < list.length; i++) {
+        var tr = $('<tr>');
+        if (!list[i].user1_scores) {
+            list[i].user1_scores = 0;
+        }
+        if (!list[i].user2_scores) {
+            list[i].user2_scores = 0;
+        }
+        tr.attr('id', i);
+        tr.append($('<td>').text(list[i].idGame))
+            .append($('<td>').text(list[i].user1_name + ' ( ' + list[i].user1_scores + ' )' + ' - '
+            + list[i].user2_name + ' ( ' + list[i].user2_scores + ' )'))
+            .append($('<td>').text(list[i].winner_name));
+        tr.on('click', function(data) {
+            startReplay(data.delegateTarget.id);
+        });
+        $('#replayList').append(tr);
+    }
+}
+
+function startReplay(i) {
+    var gameInfo = list[i];
+    replay = true;
+    idGame = gameInfo.idGame;
+    lastDate = gameInfo.start_time;
+    console.log(gameInfo);
+    $('#history').attr('hidden', 'true');
     $('#replay').removeAttr('hidden');
-    startSlider = timestamp('2017-02-01 12:00:43');
-    endSlider = timestamp('2017-02-01 12:00:53');
+    replayMap();
+    startSlider = timestamp(gameInfo.start_time);
+    endSlider = timestamp(gameInfo.stop_time);
     slider = document.getElementById('slider');
-    var sliderVal = document.getElementById('slider-val');
+    sliderVal = document.getElementById('slider-val');
     $('#slider-start').text(timestampToTime(parseInt(startSlider)));
     $('#slider-end').text(timestampToTime(parseInt(endSlider)));
     noUiSlider.create(slider, {
@@ -107,22 +155,68 @@ function startReplay() {
     });
     slider.noUiSlider.on('change', function( value ){
         if (!replayInterval) {
-            replayInterval = setInterval(nextStep, 1000);
+            replayInterval = setInterval(nextStep, step);
         }
         sliderVal.innerHTML = timestampToTime(parseInt(value));
+        map.eachLayer(function (myLayer) {
+            if (!myLayer.options.id) {
+                map.removeLayer(myLayer)
+            }
+        });
+        lastDate = gameInfo.start_time;
     });
     if (!replayInterval) {
-        replayInterval = setInterval(nextStep, 1000);
+        replayInterval = setInterval(nextStep, step);
     }
 }
 
+function replayMap() {
+    map = L.map('replayMap', {center: [49.98986319656137, 36.229476928710945], zoom: 14});
+    layer = L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        maxZoom: 18,
+        id: 'm1sha87.2hmg0n2n',
+        accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
+    }).addTo(map);
+}
+
+function getReplayData() {
+    var data = {
+        'idGame': idGame,
+        'startTime': lastDate,
+        'stopTime': currentDate
+    };
+    $.ajax({
+        type: 'POST',
+        url: "/history/history",
+        data: JSON.stringify(data),
+        success: drawData,
+        timeout: parseInt(step) + 1000
+    });
+    lastDate = currentDate;
+}
+
+function timestampToDate(timestamp) {
+    var date = new Date();
+    date.setTime(timestamp);
+    var year = date.getFullYear();
+    var month = "0" + (parseInt(date.getMonth()) + 1);
+    var day = date.getDate();
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+    return year + '-' + month.substr(-2) + '-' + day + ' ' + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+}
+
 function nextStep() {
-    var value = parseInt(slider.noUiSlider.get()) + 1000;
+    var value = parseInt(slider.noUiSlider.get()) + step;
+    sliderVal.innerHTML = timestampToTime(value);
     if (value >= endSlider) {
         clearInterval(replayInterval);
         replayInterval = null;
     }
     slider.noUiSlider.set(value);
+    currentDate = timestampToDate(value);
+    getReplayData();
 }
 
 // Смена декораций
@@ -130,7 +224,6 @@ function modeSelected() {
     $('#mode').attr('hidden', 'true');
     $('#game').removeAttr('hidden');
 }
-
 
 
 // Отрисовка карты и маркера игрока
@@ -435,6 +528,13 @@ function addDots(dots) {
                 radius: dots[i].accuracy
             }).addTo(map);
             lastDot = {latitude: dots[i].latitude, longitude: dots[i].longitude, accuracy: dots[i].accuracy};
+            if (replay) {
+                if (!myMarker) {
+                    myMarker = L.marker([dots[i].latitude, dots[i].longitude]).addTo(map);
+                } else {
+                    myMarker.setLatLng([dots[i].latitude, dots[i].longitude]);
+                }
+            }
         } else {
             opponentDots[dots[i].id] = L.circle([dots[i].latitude, dots[i].longitude], {
                 color: 'red',

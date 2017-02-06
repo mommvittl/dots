@@ -17,11 +17,9 @@ $this->registerCssFile('/web/css/nouislider.css');
             <div class="btn-block">
                 <button type="button" class="btn btn-success btn-lg btn-block" onclick="startGPS()">With GPS</button>
                 <button type="button" class="btn btn-primary btn-lg btn-block" onclick="startSimulation()">Simulation</button>
-                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="startReplay()">Watch replays</button>
+                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="getHistory()">Watch replays</button>
             </div>
-<!--            <div id="homeImage" class="row">-->
                 <img id="homeImage" src="/images/dots.png" alt="dots">
-<!--            </div>-->
         </div>
         <div id="game" hidden>
             <div class="row">
@@ -51,7 +49,6 @@ $this->registerCssFile('/web/css/nouislider.css');
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-<!--                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
                         <h4 class="modal-title" id="Scores">Final Scores</h4>
                     </div>
                     <div class="modal-body">
@@ -65,7 +62,17 @@ $this->registerCssFile('/web/css/nouislider.css');
                 </div>
             </div>
         </div>
+        <div id="history" hidden>
+            <table id="replayList" class="table table-hover">
+                <tr>
+                    <th>Game id</th>
+                    <th>Opponents</th>
+                    <th>Winner</th>
+                </tr>
+            </table>
+        </div>
         <div id="replay" hidden>
+            <div class="row" id="replayMap"></div>
             <div id="slider"></div>
             <div class="row">
                 <div class="col-xs-4" id="slider-start"></div>
@@ -76,13 +83,6 @@ $this->registerCssFile('/web/css/nouislider.css');
                     <div class="pull-right" id="slider-end"></div>
                 </div>
             </div>
-            <!--<table class="table table-bordered table-striped">
-                <tr>
-                    <th>User1</th>
-                    <th>User2</th>
-                    <th>Game id</th>
-                </tr>
-            </table>-->
         </div>
     </div>
 </div>
