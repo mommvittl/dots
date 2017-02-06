@@ -179,6 +179,7 @@ function viewGetReady(responseXMLDocument) {
         modalInformWindow(stringInform);
         functionNameForMyButClick = stopGame;
         timerId = setInterval(getNewCommand, 1000);
+        gameOverFlag = false;
     }
 }
 
@@ -295,8 +296,10 @@ function  responseStatusGameOver(response) {
     var statusGame = response.message;
     var stringInform = "Окончание игры. <br> Победитель " + statusGame.winner + "<br> Ваши очки: " + statusGame.scoresMe + "<br> очки соперника: " + statusGame.scoresEnemy;
     clearInterval(timerId);
-    gameOverFlag = true;
-    modalInformWindow(stringInform);
+    if( !gameOverFlag  ){
+        modalInformWindow(stringInform);
+    }
+    gameOverFlag = true; 
     removeGame();
 }
 function  responseStatusError(response) {
@@ -399,7 +402,7 @@ document.body.onkeydown = function (event) {
             return false;
     }
     changePosition();
-}
+};
 function modalInformWindow(stringInform) {
     var modWin = document.getElementById('molalInformWindow');
     if (modWin != null) {
@@ -414,8 +417,8 @@ function modalInformWindow(stringInform) {
         //     document.body.removeChild(modalInformWindow);
         var modWin = document.getElementById('molalInformWindow');
         modWin.parentElement .removeChild(modWin);
-    }
-}
+    };
+};
 //============================================================================================================================================================
 //Конструктор для ajax GET POST запросов.Возвращает обьект с методом this.setAjaxQuery.
 //Вызов запроса: objectName.setAjaxQuery(theUrl,theParam,theFunct,theQuerType,theRespType) , где :
