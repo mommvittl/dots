@@ -32,6 +32,7 @@ class HistoryController extends BasisController {
                 ->where(' (g.`user1_id` = :idGamer OR g.`user2_id` = :idGamer) and u1.id = g.`user1_id`'
                         . ' and u2.id = g.`user2_id` and u3.id = g.`winner_id`')
                 ->addParams([':idGamer' => $this->idGamer])
+                ->orderBy( 'g.`id` DESC' )
                 ->asArray()
                 ->all();
         $this->sendRequest(['status' => 'ok', 'historyList' => $query]);
