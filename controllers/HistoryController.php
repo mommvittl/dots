@@ -27,12 +27,13 @@ class HistoryController extends BasisController {
     public function actionGetHistorylist() {
         $query = Game::find()
                 ->select(' g.`id` as idGame,g.`user1_scores`,g.`user2_scores`, u1.username as user1_name,'
-                        . ' u2.username as user2_name,u3.username as winner_name ')
+                        . ' u2.username as user2_name,u3.username as winner_name,'
+                        . ' g.`start_time` as start_time, g.`stop_time` as stop_time ')
                 ->from('`game`as g , `user` as u1, `user` as u2, `user` as u3 ')
                 ->where(' (g.`user1_id` = :idGamer OR g.`user2_id` = :idGamer) and u1.id = g.`user1_id`'
                         . ' and u2.id = g.`user2_id` and u3.id = g.`winner_id`')
                 ->addParams([':idGamer' => $this->idGamer])
-                ->orderBy( 'g.`id` DESC' )
+                ->orderBy('g.`id` DESC')
                 ->asArray()
                 ->all();
         $this->sendRequest(['status' => 'ok', 'historyList' => $query]);
@@ -41,7 +42,7 @@ class HistoryController extends BasisController {
     public function actionHistory() {
         $startTime = microtime(true);
         $this->queryPar = $this->getQueryParam();
- 
+
         if (!$this->timingValidate($this->queryPar)) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data']);
         }
