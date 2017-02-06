@@ -12,9 +12,9 @@ class RulingController extends BasisController {
     public function actionIndex() {
 
         $this->queryPar = $this->getQueryParam();
-        $query =  $this->queryPar;
+        $query = $this->queryPar;
         // var_dump($query);
-           $this->sendRequest(['status' => 'test' , 'par' => json_encode($this->queryPar)]);
+        $this->sendRequest(['status' => 'test', 'par' => json_encode($this->queryPar)]);
         return $this->render('test', ['dots' => $query]);
     }
 
@@ -153,9 +153,11 @@ class RulingController extends BasisController {
     }
 
     protected function addGame($idEnemy) {
+        $updateTime = new \DateTime();
         $query = new \app\models\Game();
         $query->user1_id = $this->idGamer;
         $query->user2_id = $idEnemy;
+        $query->start_time = $updateTime->format('Y-m-d H:i:s');
         $query->save();
     }
 
@@ -211,8 +213,8 @@ class RulingController extends BasisController {
         $idGamer1 = (int) $query->user1_id;
         $idGamer2 = (int) $query->user2_id;
         if ($surrend) {
-            $score1 = ( $idGamer1 == $this->idGamer ) ? 0 : (int) $query->user1_scores ;
-            $score2 = ( $idGamer2 == $this->idGamer ) ? 0 : (int) $query->user2_scores ;
+            $score1 = ( $idGamer1 == $this->idGamer ) ? 0 : (int) $query->user1_scores;
+            $score2 = ( $idGamer2 == $this->idGamer ) ? 0 : (int) $query->user2_scores;
         } else {
             $score1 = ( $query->user1_scores ) ? (int) $query->user1_scores : 0;
             $score2 = ( $query->user2_scores ) ? (int) $query->user2_scores : 0;
