@@ -347,7 +347,7 @@ class RoundController extends BasisController {
             return FALSE;
         }
         $time = $dt2->getTimestamp() - $dt->getTimestamp();
-        return ( $time > 113900 ) ? TRUE : FALSE;
+        return ( $time > 3600 ) ? TRUE : FALSE;
         return FALSE;
     }
 

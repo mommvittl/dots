@@ -221,12 +221,12 @@ function viewStopReady(responseXMLDocument) {
 //----------------------------------------------------    
 function gameOverCommand() {
     // vvar theParam = JSON.stringify({ });
-   var theParam = JSON.stringify({ 'surrend': 1  });
-   ajaxGet.setAjaxQuery('/ruling/stop-game', theParam, viewGameOver, 'POST', 'text');
-  //   ajaxGet.setAjaxQuery('/ruling/index', theParam, viewGameOver, 'POST', 'text');
+    var theParam = JSON.stringify({'surrend': 1});
+    ajaxGet.setAjaxQuery('/ruling/stop-game', theParam, viewGameOver, 'POST', 'text');
+    //   ajaxGet.setAjaxQuery('/ruling/index', theParam, viewGameOver, 'POST', 'text');
 }
 function viewGameOver(responseXMLDocument) {
-    alert(responseXMLDocument);      
+    alert(responseXMLDocument);
     return;
     document.getElementById('informStr').innerHTML = " Game over ";
     functionNameForMyButClick = emptyFunction;
@@ -338,22 +338,24 @@ function  viewAddPolygons(responseData) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddPolygon.length; i++) {
-        var newRing = [];
-        var poligon = responseData.arrAddPolygon[ i ].arrDot;
-        for (var j = 0; j < poligon.length; j++) {
-            newRing.push([poligon[ j ].latitude, poligon[ j ].longitude]);
+        if (!(responseData.arrAddPolygon[ i ].id in polygons)) {
+            var newRing = [];
+            var poligon = responseData.arrAddPolygon[ i ].arrDot;
+            for (var j = 0; j < poligon.length; j++) {
+                newRing.push([poligon[ j ].latitude, poligon[ j ].longitude]);
+            }
+            var gamerColor = (responseData.arrAddPolygon[ i ].gamer == 'me') ? '#FFA500' : '#87CEEB';
+            lastPolygonId = responseData.arrAddPolygon[ i ].id;
+            polygons[ lastPolygonId ] = new ymaps.Polygon(
+                    [poligon],
+                    {hintContent: "Многоугольник"},
+                    {fillColor: gamerColor, strokeWidth: 8, opacity: 0.5}
+            );
+            myMap.geoObjects.add(polygons[ lastPolygonId ]);
         }
-        var gamerColor = (responseData.arrAddPolygon[ i ].gamer == 'me') ? '#FFA500' : '#87CEEB';
-        lastPolygonId = responseData.arrAddPolygon[ i ].id;
-        polygons[ lastPolygonId ] = new ymaps.Polygon(
-//       [newRing],
-                [poligon],
-                {hintContent: "Многоугольник"},
-                {fillColor: gamerColor, strokeWidth: 8, opacity: 0.5}
-        );
-        myMap.geoObjects.add(polygons[ lastPolygonId ]);
+
     }
-    redrawDots();
+    //  redrawDots();
 }
 function  viewDeleteDots(responseData) {
     if (!responseData.arrIdDeleteDots || responseData.arrIdDeleteDots.length == 0) {
@@ -399,12 +401,19 @@ document.body.onkeydown = function (event) {
     changePosition();
 }
 function modalInformWindow(stringInform) {
+    var modWin = document.getElementById('molalInformWindow');
+    if (modWin != null) {
+        modWin.parentElement .removeChild(modWin);
+    }
     var modalInformWindow = document.createElement('div');
+    modalInformWindow.setAttribute('id','molalInformWindow');
     modalInformWindow.innerHTML = "<h1>" + stringInform + "</h1>";
     document.body.insertBefore(modalInformWindow, document.body.firstChild);
     modalInformWindow.style.cssText = "min-width:  80vw; max-width: 100%;min-height: 70vh; max-height: 100%;cursor:pointer;padding:10px;background:#7A96A1;color:#FFFFF0;text-align:center;font: 1em/2em arial;border: 4px double #1E0D69;position:fixed;z-index: 1000;top:50%;left:50%;transform:translate(-50%, -50%);box-shadow: 6px 6px #14536B;";
     modalInformWindow.onclick = function () {
-        document.body.removeChild(modalInformWindow);
+        //     document.body.removeChild(modalInformWindow);
+        var modWin = document.getElementById('molalInformWindow');
+        modWin.parentElement .removeChild(modWin);
     }
 }
 //============================================================================================================================================================
