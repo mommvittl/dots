@@ -11,16 +11,6 @@ class RulingController extends BasisController {
 
     public function actionIndex() {
 
-        /*
-          phpinfo();
-          $query = [
-          'idGame' => $this->idGame,
-          'idGamer' =>$this->idGamer,
-          'idEnemy' => $this->idEnemy,
-          'startTime' => $this->startTime
-
-          ];
-         */
         $this->queryPar = $this->getQueryParam();
         $query =  $this->queryPar;
         // var_dump($query);
@@ -82,21 +72,6 @@ class RulingController extends BasisController {
         $this->getWinner($this->idGame, $surrend);
         $this->sendRequest(['status' => 'ok']);
     }
-
-    /*
-      public function actionRemoveSession() {
-      if (isset($_SESSION['idEnemy'])) {
-      unset($_SESSION['idEnemy']);
-      }
-      if (isset($_SESSION['idGame'])) {
-      unset($_SESSION['idGame']);
-      }
-      if (isset($_SESSION['startTime'])) {
-      unset($_SESSION['startTime']);
-      }
-      $this->sendRequest(['status' => 'ok']);
-      }
-     */
 
     public function actionGetGamelist() {
         $query = Game::find()

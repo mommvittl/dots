@@ -26,13 +26,14 @@ class RoundController extends BasisController {
             $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 2 2 ']);
         }
         $this->queryPar = $this->getQueryParam();
-         if ( $this->queryPar === FALSE) {
+        if ($this->queryPar === FALSE) {
             $this->sendRequest(['status' => 'error', 'message' => 'mast be input parameter']);
         }
     }
 
     public function actionIndex() {
-        $query = 35;
+
+        $query = $this->countDot(662, 11);
         return $this->render('test', ['dots' => $query]);
     }
 
@@ -43,7 +44,7 @@ class RoundController extends BasisController {
             $this->sendRequest(['status' => 'error', 'message' => 'gameOver.']);
         }
         if ($this->isTimeOut($this->startTime)) {
-            $statusGameOver = $this->gameOver();
+            $this->gameOver();
             $this->sendRequest(['status' => 'error', 'message' => 'TimeOut.']);
         }
 
@@ -97,6 +98,11 @@ class RoundController extends BasisController {
             $enemyDotsInPolygon = $this->getDotsInPolygon($this->idEnemy, $idNewPolygon);
             if ($enemyDotsInPolygon !== false) {
                 $this->cutDots($this->idEnemy, $enemyDotsInPolygon, '<=');
+                if (!$this->countDot($this->idGame, $this->idEnemy)) {
+                    $this->addScores($this->idGame, $this->idEnemy, 0, false);
+                    $this->addScores($this->idGame, $this->idGamer, $this->scores);
+                    $this->gameOver();
+                }
             }
             $arrPolyInPolygon = $this->getPolyInPolygon($this->idEnemy, $idNewPolygon);
             if ($arrPolyInPolygon !== false) {
@@ -115,13 +121,13 @@ class RoundController extends BasisController {
         if ($statusGame['statusGame'] === FALSE) {
             $this->sendRequest(['status' => 'gameOver', 'message' => $statusGame]);
         }
-        if( !$this->getChangeValidate( $this->queryPar ) ){
-             return( ['status' => 'error', 'message' => 'error: incorrect input data'] );
+        if (!$this->getChangeValidate($this->queryPar)) {
+            return( ['status' => 'error', 'message' => 'error: incorrect input data'] );
         }
-        $this->arrAddDots = $this->getDotsForAdd($this->queryPar->lastDotId );
+        $this->arrAddDots = $this->getDotsForAdd($this->queryPar->lastDotId);
         $this->arrAddPolygon = $this->getPolygonForAdd($this->queryPar->lastPolygonId);
-        list( $this->lastDelDotId, $this->arrIdDeleteDots ) = $this->getDotsForDelete($this->queryPar->lastDelDotId );
-        list( $this->lastDelPolygonId, $this->arrIdDeletePolygon ) = $this->getPolygonForDelete($this->queryPar->lastDelPolygonId );
+        list( $this->lastDelDotId, $this->arrIdDeleteDots ) = $this->getDotsForDelete($this->queryPar->lastDelDotId);
+        list( $this->lastDelPolygonId, $this->arrIdDeletePolygon ) = $this->getPolygonForDelete($this->queryPar->lastDelPolygonId);
 
         $request = [
             'status' => 'ok',
@@ -175,15 +181,15 @@ class RoundController extends BasisController {
         };
         return TRUE;
     }
-    protected function getChangeValidate( &$query ) {
-        if( !isset( $query->lastDotId ) ||  !isset( $query->lastPolygonId )
-                || !isset( $query->lastDelDotId ) || !isset( $query->lastDelPolygonId ) ){
+
+    protected function getChangeValidate(&$query) {
+        if (!isset($query->lastDotId) || !isset($query->lastPolygonId) || !isset($query->lastDelDotId) || !isset($query->lastDelPolygonId)) {
             return FALSE;
         }
-        $query->lastDotId = (int)$query->lastDotId;
-        $query->lastPolygonId = (int)$query->lastPolygonId;
-        $query->lastDelDotId = (int)$query->lastDelDotId;
-        $query->lastDelPolygonId = (int)$query->lastDelPolygonId;
+        $query->lastDotId = (int) $query->lastDotId;
+        $query->lastPolygonId = (int) $query->lastPolygonId;
+        $query->lastDelDotId = (int) $query->lastDelDotId;
+        $query->lastDelPolygonId = (int) $query->lastDelPolygonId;
         return TRUE;
     }
 
@@ -231,6 +237,15 @@ class RoundController extends BasisController {
                 ->bindValues([':idGamer' => $idGamer, ':idGame' => $this->idGame, ':idDot' => $idDot])
                 ->execute();
         return;
+    }
+
+    protected function countDot($idGame, $idGamer) {
+        $strQuery = ' SELECT count(*) as col FROM  `user_has_points` WHERE  `game_id` = :idGame '
+                . 'AND `status` = 1 AND `user_id` = :idGamer ';
+        $query = Yii::$app->db->createCommand($strQuery)
+                ->bindValues([':idGamer' => $idGamer, ':idGame' => $idGame])
+                ->queryScalar();
+        return $query;
     }
 
     protected function cutAllDots($idGamer) {
@@ -313,12 +328,15 @@ class RoundController extends BasisController {
         }
     }
 
-    protected function addScores($idGame, $idGamer, $scores) {
+    protected function addScores($idGame, $idGamer, $scores, $add = true) {
         $query = \app\models\Game::findOne($idGame);
         $columnName = ( (int) $query->user1_id == (int) $idGamer ) ? 'user1_scores' : 'user2_scores';
-        $query->$columnName += $scores;
+        if ($add) {
+            $query->$columnName += $scores;
+        } else {
+            $query->$columnName = $scores;
+        }
         $query->update();
-
         return;
     }
 
