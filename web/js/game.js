@@ -132,7 +132,6 @@ function startReplay(i) {
     replay = true;
     idGame = gameInfo.idGame;
     lastDate = gameInfo.start_time;
-    console.log(gameInfo);
     $('#history').attr('hidden', 'true');
     $('#replay').removeAttr('hidden');
     replayMap();
