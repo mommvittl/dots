@@ -20,7 +20,7 @@ historyTable.onclick = function (event) {
 function  mainFunction(){
  
       var theParam = JSON.stringify({ 'idGame': idGame, 'startTime': '2017-02-02 21:29:30', 'stopTime': '2017-02-02 21:29:52' });
-    $.ajax({   type: 'POST', url: "/history/history",  data:  theParam ,   success: getResponseScript,    timeout: 9000  });
+    $.ajax({   type: 'POST', url: "/history/index?au=35",  data:  theParam ,   success: getResponseScript,    timeout: 9000  });
        alert( 'idGame: ' + idGame +  ' startTime: ' + startTime + ' stopTime: ' + stopTime );
 }
 //================================================================================

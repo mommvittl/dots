@@ -40,17 +40,13 @@ class HistoryController extends BasisController {
 
     public function actionHistory() {
         $startTime = microtime(true);
-
-        $strParameter = file_get_contents('php://input');
-        $newTiming = json_decode($strParameter, TRUE);
-
-        if (!$this->timingValidate($newTiming)) {
+        $this->queryPar = $this->getQueryParam();
+ 
+        if (!$this->timingValidate($this->queryPar)) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data']);
         }
 
-
         $this->arrAddDots = $this->getDotsForAdd();
-
         $this->arrAddPolygon = $this->getPolygonForAdd();
         $this->arrIdDeleteDots = $this->getDotsForDelete();
         $this->arrIdDeletePolygon = $this->getPolygonForDelete();
@@ -84,9 +80,9 @@ class HistoryController extends BasisController {
         if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param['stopTime'])) {
             return FALSE;
         }
-        $this->idGame = (int) $param['idGame'];
-        $this->startTime = $param['startTime'];
-        $this->stopTime = $param['stopTime'];
+        $this->idGame = (int) $param->idGame;
+        $this->startTime = $param->startTime;
+        $this->stopTime = $param->stopTime;
 
         return $this->existenceGame($this->idGame);
     }

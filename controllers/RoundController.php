@@ -25,6 +25,10 @@ class RoundController extends BasisController {
         if (!$this->validateSessVar()) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: access denied 2 2 ']);
         }
+        $this->queryPar = $this->getQueryParam();
+         if ( $this->queryPar === FALSE) {
+            $this->sendRequest(['status' => 'error', 'message' => 'mast be input parameter']);
+        }
     }
 
     public function actionIndex() {
@@ -42,16 +46,14 @@ class RoundController extends BasisController {
             $statusGameOver = $this->gameOver();
             $this->sendRequest(['status' => 'error', 'message' => 'TimeOut.']);
         }
-        $strParameter = file_get_contents('php://input');
-        $arrNewPosition = json_decode($strParameter);
 
-        if (!is_array($arrNewPosition)) {
+        if (!is_array($this->queryPar)) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data. Mast be array.']);
         }
         $request = [];
-        $len = count($arrNewPosition);
+        $len = count($this->queryPar);
         for ($i = 0; $i < $len; $i++) {
-            $request[] = $this->gameProcess($arrNewPosition[$i]);
+            $request[] = $this->gameProcess($this->queryPar[$i]);
         }
         $request[] = ['time' => microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'],
             'time2' => microtime(true) - $startTime];
@@ -113,15 +115,13 @@ class RoundController extends BasisController {
         if ($statusGame['statusGame'] === FALSE) {
             $this->sendRequest(['status' => 'gameOver', 'message' => $statusGame]);
         }
-        $strParameter = file_get_contents('php://input');
-        $parameterQuery = $this->getParameterQuery($strParameter);
-        if ($parameterQuery === FALSE) {
-            $this->sendRequest(['status' => 'error', 'message' => 'incorrect input data']);
+        if( !$this->getChangeValidate( $this->queryPar ) ){
+             return( ['status' => 'error', 'message' => 'error: incorrect input data'] );
         }
-        $this->arrAddDots = $this->getDotsForAdd($parameterQuery['lastDotId']);
-        $this->arrAddPolygon = $this->getPolygonForAdd($parameterQuery['lastPolygonId']);
-        list( $this->lastDelDotId, $this->arrIdDeleteDots ) = $this->getDotsForDelete($parameterQuery['lastDelDotId']);
-        list( $this->lastDelPolygonId, $this->arrIdDeletePolygon ) = $this->getPolygonForDelete($parameterQuery['lastDelPolygonId']);
+        $this->arrAddDots = $this->getDotsForAdd($this->queryPar->lastDotId );
+        $this->arrAddPolygon = $this->getPolygonForAdd($this->queryPar->lastPolygonId);
+        list( $this->lastDelDotId, $this->arrIdDeleteDots ) = $this->getDotsForDelete($this->queryPar->lastDelDotId );
+        list( $this->lastDelPolygonId, $this->arrIdDeletePolygon ) = $this->getPolygonForDelete($this->queryPar->lastDelPolygonId );
 
         $request = [
             'status' => 'ok',
@@ -173,6 +173,17 @@ class RoundController extends BasisController {
         if (( $position->longitude <= 0 ) || ( $position->longitude >= 90 )) {
             return FALSE;
         };
+        return TRUE;
+    }
+    protected function getChangeValidate( &$query ) {
+        if( !isset( $query->lastDotId ) ||  !isset( $query->lastPolygonId )
+                || !isset( $query->lastDelDotId ) || !isset( $query->lastDelPolygonId ) ){
+            return FALSE;
+        }
+        $query->lastDotId = (int)$query->lastDotId;
+        $query->lastPolygonId = (int)$query->lastPolygonId;
+        $query->lastDelDotId = (int)$query->lastDelDotId;
+        $query->lastDelPolygonId = (int)$query->lastDelPolygonId;
         return TRUE;
     }
 

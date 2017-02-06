@@ -16,6 +16,7 @@ class BasisController extends \yii\base\Controller {
     protected $idGamer = null;
     protected $idEnemy = null;
     protected $startTime = null;
+    protected $queryPar = false;
 
     public function __construct($id, $module, $config = []) {
         parent::__construct($id, $module, $config);
@@ -33,6 +34,7 @@ class BasisController extends \yii\base\Controller {
         echo( json_encode($ajaxRequest) );
         exit;
     }
+
     protected function loggout() {
         $this->idGamer = ( isset($_SESSION['__id']) ) ? (int) $_SESSION['__id'] : 0;
         if (!$this->idGamer) {
@@ -40,11 +42,13 @@ class BasisController extends \yii\base\Controller {
         }
         return $this->existenceUser($this->idGamer);
     }
+
     protected function existenceUser($idUser) {
         $query = 'SELECT count(*)  FROM `user` WHERE `id` = ' . $idUser;
         $col = Yii::$app->db->createCommand($query)->queryScalar();
         return ( $col ) ? TRUE : FALSE;
     }
+
     protected function existenceGame($idGame, $idGamer, $idEnemy) {
         $query = ' SELECT count(*) FROM `game` WHERE `id`= :idGame  and '
                 . ' ( (  `user1_id`= :idGamer AND `user2_id` = :idEnemy ) OR '
@@ -54,6 +58,7 @@ class BasisController extends \yii\base\Controller {
                 ->queryScalar();
         return ( $col ) ? TRUE : FALSE;
     }
+
     protected function getStatusGame() {
         $query = \app\models\Game::findOne($this->idGame);
         if (is_null($query->winner_id)) {
@@ -80,12 +85,13 @@ class BasisController extends \yii\base\Controller {
             'scoresMe' => $scoresMe,
             'scoresEnemy' => $scoresEnemy];
     }
-    protected function getSessVar() {
-        $this->idGame = ( isset($_SESSION['idGame']) ) ? (int) $_SESSION['idGame'] : 0;
-        $this->idEnemy = ( isset($_SESSION['idEnemy']) ) ? (int) $_SESSION['idEnemy'] : 0;
-        $this->startTime = ( isset($_SESSION['startTime']) ) ? $_SESSION['startTime'] : 0;
-        return TRUE;
+
+    protected function getQueryParam() {
+        $strParameter = file_get_contents('php://input');
+        $queryParam = json_decode($strParameter);
+        return $queryParam;
     }
+
     protected function getGameVar() {
         $query = Game::find()
                 ->where(' `user1_id` = :idGamer OR `user2_id`= :idGamer ')

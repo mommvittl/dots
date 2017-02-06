@@ -220,13 +220,17 @@ function viewStopReady(responseXMLDocument) {
 }
 //----------------------------------------------------    
 function gameOverCommand() {
-    var theParam = JSON.stringify({});
-    ajaxGet.setAjaxQuery('/ruling/stop-game', theParam, viewGameOver, 'POST', 'text');
+    // vvar theParam = JSON.stringify({ });
+   var theParam = JSON.stringify({ 'surrend': 1  });
+   ajaxGet.setAjaxQuery('/ruling/stop-game', theParam, viewGameOver, 'POST', 'text');
+  //   ajaxGet.setAjaxQuery('/ruling/index', theParam, viewGameOver, 'POST', 'text');
 }
 function viewGameOver(responseXMLDocument) {
+    alert(responseXMLDocument);      
+    return;
     document.getElementById('informStr').innerHTML = " Game over ";
     functionNameForMyButClick = emptyFunction;
-    // alert(responseXMLDocument);                    
+    //               
 }
 function emptyFunction() { }
 //------------------------------------------------------------
@@ -308,8 +312,6 @@ function removeGame() {
     initializationVar();
     functionNameForMyButClick = findGetReady;
     document.getElementById('informStr').innerHTML = " Нажмите start для поиска игроков ";
-    var theParam = JSON.stringify({});
-    ajaxGet.setAjaxQuery('/ruling/remove-session', theParam, emptyFunction, 'POST', 'text');
 }
 //------------------------------------------------------
 function  viewAddDots(responseData) {
