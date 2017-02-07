@@ -85,10 +85,10 @@ class HistoryController extends BasisController {
         $this->startTime = $param->startTime;
         $this->stopTime = $param->stopTime;
 
-        return $this->existenceGame($this->idGame);
+        return $this->isExistenceGame($this->idGame);
     }
 
-    protected function existenceGame($idGame) {
+    protected function isExistenceGame($idGame) {
         $query = Game::find()
                 ->select('count(*)')
                 ->where(' `id` = :idGame AND ( `user1_id` = :idGamer OR `user2_id` = :idGamer ) ')
