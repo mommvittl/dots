@@ -28,7 +28,8 @@ class HistoryController extends BasisController {
         $query = Game::find()
                 ->select(' g.`id` as idGame,g.`user1_scores`,g.`user2_scores`, u1.username as user1_name,'
                         . ' u2.username as user2_name,u3.username as winner_name,'
-                        . ' g.`start_time` as start_time, g.`stop_time` as stop_time ')
+                        . ' g.`start_time` as start_time, g.`stop_time` as stop_time, '
+                        . ' UNIX_TIMESTAMP ( g.`start_time` ) as start_timestamp, UNIX_TIMESTAMP ( g.`stop_time` ) as stop_timestamp ')
                 ->from('`game`as g , `user` as u1, `user` as u2, `user` as u3 ')
                 ->where(' (g.`user1_id` = :idGamer OR g.`user2_id` = :idGamer) and u1.id = g.`user1_id`'
                         . ' and u2.id = g.`user2_id` and u3.id = g.`winner_id`')
@@ -74,15 +75,13 @@ class HistoryController extends BasisController {
         if (!is_object($param) || !isset($param->idGame) || !isset($param->startTime) || !isset($param->stopTime)) {
             return FALSE;
         }
-        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param->startTime)) {
-            return FALSE;
-        }
-        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param->stopTime)) {
-            return FALSE;
-        }
-        $this->idGame = (int) $param->idGame;
-        $this->startTime = $param->startTime;
-        $this->stopTime = $param->stopTime;
+  /*
+        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param->startTime)) {  return FALSE;   }
+        if (!preg_match("/\d{4}-\d{2}-\d{2} \d{2}:\d{2}:\d{2}/", $param->stopTime)) {    return FALSE;   }
+    */
+        $this->idGame = (int)$param->idGame;
+        $this->startTime =(int)$param->startTime;
+        $this->stopTime = (int)$param->stopTime;
         return $this->isExistenceGame($this->idGame);
     }
 
@@ -99,7 +98,8 @@ class HistoryController extends BasisController {
         $dots = [];
         $query = User_has_points::find()
                 ->select(" `id`, `user_id`, X( `point` ), Y( `point` ), `accuracy`, `timestamp` ")
-                ->where('  `game_id` = :idGame  and `timestamp` > :startTime and `timestamp` <= :stopTime ')
+                ->where('  `game_id` = :idGame  and `timestamp` > FROM_UNIXTIME( :startTime ) '
+                        . 'and `timestamp` <= FROM_UNIXTIME( :stopTime )  ')
                 ->addParams([
                     ':idGame' => $this->idGame,
                     ':startTime' => $this->startTime,
@@ -125,7 +125,8 @@ class HistoryController extends BasisController {
         $polygons = [];
         $query = User_has_polygons::find()
                 ->select(' `id`,`user_id`, AsText(`polygon`) as polygon ')
-                ->where(' `game_id` = :idGame  and `timestamp` > :startTime and `timestamp` <= :stopTime   ')
+                 ->where('  `game_id` = :idGame  and `timestamp` > FROM_UNIXTIME( :startTime ) '
+                        . 'and `timestamp` <= FROM_UNIXTIME( :stopTime )  ')
                 ->addParams([
                     ':idGame' => $this->idGame,
                     ':startTime' => $this->startTime,
@@ -159,7 +160,8 @@ class HistoryController extends BasisController {
         $newLastId = $prevLastId;
         $query = Deleted_points::find()
                 ->select(' `id`, `point_id` ')
-                ->where(' `game_id` = :idGame AND `del_time` > :startTime and `del_time` <= :stopTime  ')
+                ->where('  `game_id` = :idGame  and `timestamp` > FROM_UNIXTIME( :startTime ) '
+                        . 'and `timestamp` <= FROM_UNIXTIME( :stopTime )  ')
                 ->addParams([
                     ':idGame' => $this->idGame,
                     ':startTime' => $this->startTime,
@@ -179,7 +181,8 @@ class HistoryController extends BasisController {
         $newLastId = $prevLastId;
         $query = Deleted_polygons::find()
                 ->select(' id, polygon_id ')
-                ->where(' `game_id` = :idGame AND `del_time` > :startTime and `del_time` <= :stopTime  ')
+                ->where('  `game_id` = :idGame  and `timestamp` > FROM_UNIXTIME( :startTime ) '
+                        . 'and `timestamp` <= FROM_UNIXTIME( :stopTime )  ')
                 ->addParams([
                     ':idGame' => $this->idGame,
                     ':startTime' => $this->startTime,

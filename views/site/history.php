@@ -14,14 +14,14 @@ $this->title = 'Dots - history';
                 <th>User2 scores</th>
             </tr>
 <?php foreach ($games as $row): ?>
-                <tr idGame="<?= $row['id'] ?>" startTime="<?= $row['start_time'] ?>"
-                    stopTime="<?= $row['stop_time'] ?>"  idGamer1="<?= $row['idg1'] ?>" idGamer2="<?= $row['idg2'] ?>">
+             <tr idGame="<?= $row['idGame'] ?>" startTime="<?= $row['start_time'] ?>"
+                    stopTime="<?= $row['stop_time'] ?>" >
                 <?php
-                $color1 = ( $row['gm1'] == $row['wn'] ) ? "red" : "blue";
-                $color2 = ( $row['gm2'] == $row['wn'] ) ? "red" : "blue";
+                $color1 = ( $row['user1_name'] == $row['winner_name'] ) ? "winner" : "loser";
+                $color2 = ( $row['user2_name'] == $row['winner_name'] ) ? "winner" : "loser";
                 ?>
-                    <td style=" color: <?= $color1 ?> ;"><?= $row['gm1'] ?></td>
-                    <td style=" color: <?= $color2 ?> ;"><?= $row['gm2'] ?></td>
+                    <td class="<?= $color1 ?>"><?= $row['user1_name'] ?></td>
+                    <td class="<?= $color2 ?>"><?= $row['user2_name'] ?></td>
                     <td><?= $row['start_time'] ?></td>
                     <td><?= $row['user1_scores'] ?></td>
                     <td><?= $row['user2_scores'] ?></td>

@@ -142,3 +142,5 @@ a.desc:after {
 #slider {
     margin-top: 15px;
 }
+.winner { color: red; }
+.loser { color: blue; }
