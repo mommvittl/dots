@@ -71,7 +71,6 @@ class HistoryController extends BasisController {
 
     //=============================================================================
     protected function timingValidate($param) {
-
         if (!is_object($param) || !isset($param->idGame) || !isset($param->startTime) || !isset($param->stopTime)) {
             return FALSE;
         }
@@ -84,7 +83,6 @@ class HistoryController extends BasisController {
         $this->idGame = (int) $param->idGame;
         $this->startTime = $param->startTime;
         $this->stopTime = $param->stopTime;
-
         return $this->isExistenceGame($this->idGame);
     }
 
@@ -98,7 +96,6 @@ class HistoryController extends BasisController {
     }
 
     protected function getDotsForAdd() {
-
         $dots = [];
         $query = User_has_points::find()
                 ->select(" `id`, `user_id`, X( `point` ), Y( `point` ), `accuracy`, `timestamp` ")
