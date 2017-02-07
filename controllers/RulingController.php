@@ -19,11 +19,14 @@ class RulingController extends BasisController {
     }
 
     public function actionGetReady() {
+
         $this->queryPar = $this->getQueryParam();
         if (!$this->newPositionValidate($this->queryPar)) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data']);
         }
+        
         $this->deleteOldReady();
+
         $request = $this->updateReady($this->queryPar);
         $request['arrOpponents'] = $this->getOpponents();
         $this->sendRequest($request);
@@ -247,12 +250,15 @@ class RulingController extends BasisController {
     }
 
     protected function deleteOldReady() {
+         $this->sendRequest(['status' => 'test', 'message' => 'test']);
         $updateTime = new \DateTime();
         $delTime = $updateTime->modify('-12 minutes')->format("Y-m-d H:i:s");
+         
         Yii::$app->db->createCommand()
                 ->delete('ready', ' `opponent_id` is NULL and `update_time` < :time  ')
                 ->bindParam(':time', $delTime)
                 ->execute();
+        
         return;
     }
 

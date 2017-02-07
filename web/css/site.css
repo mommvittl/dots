@@ -180,3 +180,5 @@ a.desc:after {
 
 .winner { color: red; }
 .loser { color: blue; }
+
+#historyTable td { width: auto; }

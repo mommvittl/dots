@@ -145,6 +145,7 @@ class SiteController extends Controller {
         return $this->render('rating', ['scores' => $query]);
     }
 
+
     public function actionHistory() {
 
         $query = Game::find()
