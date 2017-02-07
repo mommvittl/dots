@@ -553,6 +553,16 @@ function addDots(dots) {
     if (simulation && !currentPoint && lastDot) {
         currentPos = {latitude: lastDot.latitude, longitude: lastDot.longitude, accuracy: lastDot.accuracy, speed: lastDot.speed} ;
     }
+    var lastMarker = L.latLng(dots[dots.length-1].latitude, dots[dots.length-1].longitude);
+    /*if (myMarker && enemyMarker) {
+        var lat = Math.abs(myMarker._latlng.lat - enemyMarker._latlang.lat);
+        var lang = Math.abs(myMarker._latlng.lang - enemyMarker._latlang.lang);
+    }*/
+    var distToCent = map.distance(map.getCenter(), lastMarker);
+    console.log(distToCent);
+    if (distToCent > 1000) {
+        map.flyTo(lastMarker);
+    }
     lastDotId = dots[dots.length-1].id;
 }
 
