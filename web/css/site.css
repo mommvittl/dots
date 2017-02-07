@@ -115,7 +115,8 @@ a.desc:after {
 }
 
 #mapid, #replayMap {
-    height: 500px;
+    height: 80vh;
+    max-width: 800px;
 }
 
 #players {
@@ -139,8 +140,53 @@ a.desc:after {
     max-width: 600px;
 }
 
-#slider {
-    margin-top: 15px;
+#sliderBar {
+    background-color: chartreuse;
+    position: fixed;
+    left: 50%;
+    transform: translate(-50%);
+    bottom: 0;
+    padding: 10px 10px 5px;
+    z-index: 1000;
+    width: 100%;
+    max-width: 500px;
 }
+
+#controlButtons {
+    position: fixed;
+    left: 50%;
+    transform: translate(-50%);
+    bottom: 55px;
+    z-index: 999;
+}
+
+@media(max-width: 400px) {
+    #controlButtons {
+        left: 10%;
+        transform: translate(0);
+    }
+}
+
+#myScores, #enemyScores {
+    background-color: transparent;
+    position: fixed;
+    bottom: 20px;
+    z-index: 998;
+    font-weight: bolder;
+    font-size: 30px;
+}
+
+#myScores {
+    color: #0000aa;
+    left: 20%;
+}
+
+#enemyScores {
+    color: #ea0004;
+    right: 20%;
+}
+
 .winner { color: red; }
 .loser { color: blue; }
+
+#historyTable td { width: auto; }

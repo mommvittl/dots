@@ -24,11 +24,9 @@ $this->registerCssFile('/web/css/nouislider.css');
         <div id="game" hidden>
             <div class="row">
                 <div>
-                    <button id="watch" onclick="stopWatch()">stop watch</button>
-                    <button id="gameover" onclick="stopGame()" hidden>game over</button>
+<!--                    <button id="watch" onclick="stopWatch()">stop watch</button>-->
+                    <button id="gameover" onclick="stopGame()" hidden>Surrend</button>
                     <span id="help"></span>
-                    <span id="myScore"></span>
-                    <span id="enemyScore"></span>
                 </div>
             </div>
             <div id="error" class="alert alert-danger" role="alert" hidden></div>
@@ -43,6 +41,10 @@ $this->registerCssFile('/web/css/nouislider.css');
                         </select>
                     </div>
                 </div>
+            </div>
+            <div id="scores" hidden>
+                <div id="myScores"></div>
+                <div id="enemyScores"></div>
             </div>
         </div>
         <div class="modal fade" id="finalScores" tabindex="-1" role="dialog" aria-labelledby="Scores">
@@ -73,14 +75,23 @@ $this->registerCssFile('/web/css/nouislider.css');
         </div>
         <div id="replay" hidden>
             <div class="row" id="replayMap"></div>
-            <div id="slider"></div>
-            <div class="row">
-                <div class="col-xs-4" id="slider-start"></div>
-                <div class="col-xs-4">
-                    <div style="text-align: center" id="slider-val"></div>
-                </div>
-                <div class="col-xs-4" >
-                    <div class="pull-right" id="slider-end"></div>
+            <div class="btn-group" id="controlButtons" role="group">
+                <button type="button" class="btn btn-default glyphicon glyphicon-backward" onclick="stepBackward()"></button>
+                <button type="button" class="btn btn-default glyphicon glyphicon-play" onclick="stepPlay()"></button>
+                <button type="button" class="btn btn-default glyphicon glyphicon-pause" onclick="stepPause()"></button>
+                <button type="button" class="btn btn-default glyphicon glyphicon-stop" onclick="stepStop()"></button>
+                <button type="button" class="btn btn-default glyphicon glyphicon-forward" onclick="stepForward()"></button>
+            </div>
+            <div id="sliderBar">
+                <div id="slider"></div>
+                <div class="row">
+                    <div class="col-xs-4" id="slider-start"></div>
+                    <div class="col-xs-4">
+                        <div style="text-align: center" id="slider-val"></div>
+                    </div>
+                    <div class="col-xs-4" >
+                        <div class="pull-right" id="slider-end"></div>
+                    </div>
                 </div>
             </div>
         </div>
