@@ -154,9 +154,17 @@ a.desc:after {
 
 #controlButtons {
     position: fixed;
-    left: 30%;
+    left: 50%;
+    transform: translate(-50%);
     bottom: 55px;
     z-index: 999;
+}
+
+@media(max-width: 400px) {
+    #controlButtons {
+        left: 10%;
+        transform: translate(0);
+    }
 }
 
 #myScores, #enemyScores {
