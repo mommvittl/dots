@@ -154,8 +154,8 @@ a.desc:after {
 
 #controlButtons {
     position: fixed;
-    left: 50%;
-    transform: translate(-50%);
+    left: 40%;
+    transform: translate(-30%);
     bottom: 55px;
     z-index: 999;
 }
