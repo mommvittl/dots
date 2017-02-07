@@ -399,6 +399,7 @@ function startGame() {
         simulateInterval = setInterval(getData, 5000);
     }
     $('#prepare').remove();
+    $('#scores').removeAttr('hidden');
     removeMarkers();
     map.remove();
     $('#mapid').remove();
@@ -518,6 +519,9 @@ function drawData(data) {
         finalScores(data.message);
         return false;
     }
+
+    $('#myScores').text(data.myScores);
+    $('#enemyScores').text(data.enemyScores);
 
     if (data.arrAddDots.length > 0) {
         addDots(data.arrAddDots);

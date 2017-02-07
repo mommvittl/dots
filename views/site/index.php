@@ -24,11 +24,9 @@ $this->registerCssFile('/web/css/nouislider.css');
         <div id="game" hidden>
             <div class="row">
                 <div>
-                    <button id="watch" onclick="stopWatch()">stop watch</button>
-                    <button id="gameover" onclick="stopGame()" hidden>game over</button>
+<!--                    <button id="watch" onclick="stopWatch()">stop watch</button>-->
+                    <button id="gameover" onclick="stopGame()" hidden>Surrend</button>
                     <span id="help"></span>
-                    <span id="myScore"></span>
-                    <span id="enemyScore"></span>
                 </div>
             </div>
             <div id="error" class="alert alert-danger" role="alert" hidden></div>
@@ -43,6 +41,10 @@ $this->registerCssFile('/web/css/nouislider.css');
                         </select>
                     </div>
                 </div>
+            </div>
+            <div id="scores" hidden>
+                <div id="myScores"></div>
+                <div id="enemyScores"></div>
             </div>
         </div>
         <div class="modal fade" id="finalScores" tabindex="-1" role="dialog" aria-labelledby="Scores">

@@ -117,8 +117,6 @@ a.desc:after {
 #mapid, #replayMap {
     height: 80vh;
     max-width: 800px;
-    left: 50%;
-    transform: translate(-50%);
 }
 
 #players {
@@ -160,6 +158,25 @@ a.desc:after {
     transform: translate(-50%);
     bottom: 55px;
     z-index: 999;
+}
+
+#myScores, #enemyScores {
+    background-color: transparent;
+    position: fixed;
+    bottom: 20px;
+    z-index: 998;
+    font-weight: bolder;
+    font-size: 30px;
+}
+
+#myScores {
+    color: #0000aa;
+    left: 20%;
+}
+
+#enemyScores {
+    color: #ea0004;
+    right: 20%;
 }
 
 .winner { color: red; }
