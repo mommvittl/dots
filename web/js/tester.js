@@ -179,6 +179,7 @@ function viewGetReady(responseXMLDocument) {
         modalInformWindow(stringInform);
         functionNameForMyButClick = stopGame;
         timerId = setInterval(getNewCommand, 1000);
+        gameOverFlag = false;
     }
 }
 
@@ -220,13 +221,17 @@ function viewStopReady(responseXMLDocument) {
 }
 //----------------------------------------------------    
 function gameOverCommand() {
-    var theParam = JSON.stringify({});
+    // vvar theParam = JSON.stringify({ });
+    var theParam = JSON.stringify({'surrend': 1});
     ajaxGet.setAjaxQuery('/ruling/stop-game', theParam, viewGameOver, 'POST', 'text');
+    //   ajaxGet.setAjaxQuery('/ruling/index', theParam, viewGameOver, 'POST', 'text');
 }
 function viewGameOver(responseXMLDocument) {
+    alert(responseXMLDocument);
+    return;
     document.getElementById('informStr').innerHTML = " Game over ";
     functionNameForMyButClick = emptyFunction;
-    // alert(responseXMLDocument);                    
+    //               
 }
 function emptyFunction() { }
 //------------------------------------------------------------
@@ -291,8 +296,10 @@ function  responseStatusGameOver(response) {
     var statusGame = response.message;
     var stringInform = "Окончание игры. <br> Победитель " + statusGame.winner + "<br> Ваши очки: " + statusGame.scoresMe + "<br> очки соперника: " + statusGame.scoresEnemy;
     clearInterval(timerId);
-    gameOverFlag = true;
-    modalInformWindow(stringInform);
+    if( !gameOverFlag  ){
+        modalInformWindow(stringInform);
+    }
+    gameOverFlag = true; 
     removeGame();
 }
 function  responseStatusError(response) {
@@ -308,8 +315,6 @@ function removeGame() {
     initializationVar();
     functionNameForMyButClick = findGetReady;
     document.getElementById('informStr').innerHTML = " Нажмите start для поиска игроков ";
-    var theParam = JSON.stringify({});
-    ajaxGet.setAjaxQuery('/ruling/remove-session', theParam, emptyFunction, 'POST', 'text');
 }
 //------------------------------------------------------
 function  viewAddDots(responseData) {
@@ -336,22 +341,24 @@ function  viewAddPolygons(responseData) {
         return false;
     }
     for (var i = 0; i < responseData.arrAddPolygon.length; i++) {
-        var newRing = [];
-        var poligon = responseData.arrAddPolygon[ i ].arrDot;
-        for (var j = 0; j < poligon.length; j++) {
-            newRing.push([poligon[ j ].latitude, poligon[ j ].longitude]);
+        if (!(responseData.arrAddPolygon[ i ].id in polygons)) {
+            var newRing = [];
+            var poligon = responseData.arrAddPolygon[ i ].arrDot;
+            for (var j = 0; j < poligon.length; j++) {
+                newRing.push([poligon[ j ].latitude, poligon[ j ].longitude]);
+            }
+            var gamerColor = (responseData.arrAddPolygon[ i ].gamer == 'me') ? '#FFA500' : '#87CEEB';
+            lastPolygonId = responseData.arrAddPolygon[ i ].id;
+            polygons[ lastPolygonId ] = new ymaps.Polygon(
+                    [poligon],
+                    {hintContent: "Многоугольник"},
+                    {fillColor: gamerColor, strokeWidth: 8, opacity: 0.5}
+            );
+            myMap.geoObjects.add(polygons[ lastPolygonId ]);
         }
-        var gamerColor = (responseData.arrAddPolygon[ i ].gamer == 'me') ? '#FFA500' : '#87CEEB';
-        lastPolygonId = responseData.arrAddPolygon[ i ].id;
-        polygons[ lastPolygonId ] = new ymaps.Polygon(
-//       [newRing],
-                [poligon],
-                {hintContent: "Многоугольник"},
-                {fillColor: gamerColor, strokeWidth: 8, opacity: 0.5}
-        );
-        myMap.geoObjects.add(polygons[ lastPolygonId ]);
+
     }
-    redrawDots();
+    //  redrawDots();
 }
 function  viewDeleteDots(responseData) {
     if (!responseData.arrIdDeleteDots || responseData.arrIdDeleteDots.length == 0) {
@@ -395,16 +402,23 @@ document.body.onkeydown = function (event) {
             return false;
     }
     changePosition();
-}
+};
 function modalInformWindow(stringInform) {
+    var modWin = document.getElementById('molalInformWindow');
+    if (modWin != null) {
+        modWin.parentElement .removeChild(modWin);
+    }
     var modalInformWindow = document.createElement('div');
+    modalInformWindow.setAttribute('id','molalInformWindow');
     modalInformWindow.innerHTML = "<h1>" + stringInform + "</h1>";
     document.body.insertBefore(modalInformWindow, document.body.firstChild);
     modalInformWindow.style.cssText = "min-width:  80vw; max-width: 100%;min-height: 70vh; max-height: 100%;cursor:pointer;padding:10px;background:#7A96A1;color:#FFFFF0;text-align:center;font: 1em/2em arial;border: 4px double #1E0D69;position:fixed;z-index: 1000;top:50%;left:50%;transform:translate(-50%, -50%);box-shadow: 6px 6px #14536B;";
     modalInformWindow.onclick = function () {
-        document.body.removeChild(modalInformWindow);
-    }
-}
+        //     document.body.removeChild(modalInformWindow);
+        var modWin = document.getElementById('molalInformWindow');
+        modWin.parentElement .removeChild(modWin);
+    };
+};
 //============================================================================================================================================================
 //Конструктор для ajax GET POST запросов.Возвращает обьект с методом this.setAjaxQuery.
 //Вызов запроса: objectName.setAjaxQuery(theUrl,theParam,theFunct,theQuerType,theRespType) , где :

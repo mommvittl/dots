@@ -37,7 +37,8 @@ DROP TABLE IF EXISTS `deleted_polygons`;
 CREATE TABLE `deleted_polygons` (
   `id` int(10) UNSIGNED NOT NULL   PRIMARY KEY AUTO_INCREMENT,
   `polygon_id` int(10) UNSIGNED NOT NULL ,
-  `game_id` int(10) UNSIGNED NOT NULL 
+  `game_id` int(10) UNSIGNED NOT NULL ,
+ `del_time`   timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4;
 
 
@@ -83,6 +84,7 @@ CREATE TABLE `game` (
   `user1_id` int(10) UNSIGNED NOT NULL,
   `user2_id` int(10) UNSIGNED NOT NULL,
   `start_time` timestamp NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  `stop_time` timestamp NOT NULL DEFAULT NULL,
   `winner_id` int(10)  DEFAULT NULL,
   `user1_scores` int(10)  DEFAULT 0,
   `user2_scores`  int(10)  DEFAULT 0

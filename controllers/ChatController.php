@@ -90,8 +90,15 @@ class ChatController extends BasisController {
 
         $idMess = ( $param->functName == 'viewUp' ) ? $param->firstMessageId : $param->lastMessageId;
         $where = ( $param->functName == 'viewUp' ) ? ' `chat`.`id` > :idMess' : ' `chat`.`id` < :idMess';
-        $limit = ( $param->firstMessageId == 0) ? 20 : 3;
-        $orderBy = ( $param->functName == 'viewUp' ) ? 'id ASC' : 'id DESC';
+        if ($param->firstMessageId == 0) {
+            $limit = 20;
+            $orderBy = 'id DESC';
+        } else {
+            $limit = 3;
+            $orderBy = ( $param->functName == 'viewUp' ) ? 'id ASC' : 'id DESC';
+        }
+        //   $limit = ( $param->firstMessageId == 0) ? 20 : 3;
+        //    $orderBy = ( $param->functName == 'viewUp' ) ? 'id ASC' : 'id DESC';
         $query = Chat::find()
                 ->select(' `chat`.`id`, `chat`.`data_post`, `chat`.`message`, `user`.`username`  ')
                 ->innerJoin(' `user` ', ' `user`.`id` = `chat`.`user_id` ')
@@ -101,7 +108,9 @@ class ChatController extends BasisController {
                 ->limit($limit)
                 ->asArray()
                 ->all();
-
+        if ($param->firstMessageId == 0) {
+          $query =  array_reverse( $query );
+        }
         return $query;
     }
 

@@ -1,4 +1,6 @@
 var sendNewMessageBut = document.getElementById('sendNewMessage');
+var openForm = document.getElementById('openForm');
+var newMessageForm = document.getElementById('newMessageForm');
 var textarea = document.forms.newMessageForm.elements.message;
 textarea.onkeydown = keyDown;
 var div2 = document.getElementById('div2');
@@ -9,7 +11,18 @@ var ajaxPOST = new AjaxGETResponse;
 var ajaxGET = new AjaxGETResponse;
 var colNewMessage = 0;
 var timeout = 2000;
+newMessageForm.hidden = true;
+var hidFun =  getHidden();
+openForm.onclick = hidFun;
 roundMessage();
+
+function getHidden(  ){
+    var status = true; 
+    return function(){
+        status = !status;
+       newMessageForm.hidden = ( status ) ? true : "" ;
+    };
+}
 
 function keyDown() {
     if (event.keyCode == 13) {
@@ -19,10 +32,10 @@ function keyDown() {
 }
 function sendNewMessage() {
     var message = document.forms.newMessageForm.elements.message.value;
+    hidFun();
     if (message.length) {
-
         var data = JSON.stringify({'message': message});
-        ajaxPOST.setAjaxQuery("/chat/new-message", data, emptyFunction, "POST", "text");
+        ajaxPOST.setAjaxQuery("/chat/new-message", data, getMessage.bind( emptyFunction, 'viewUp' ), "POST", "text");
         document.forms.newMessageForm.elements.reset.click();
     }
 }
@@ -44,9 +57,10 @@ function viewMess(funName, responseXMLDocument) {
         var arrMessage = response.arrMessage;
         colNewMessage = arrMessage.length;
         for (var i = 0; i < arrMessage.length; i++) {
+            var data = getData( arrMessage[i].data_post );
             var div = document.createElement('div');
             div.className = "newMessge";
-            div.innerHTML = "<p class='dataMessStr'><span>" + arrMessage[i].username + "</span><span>" + arrMessage[i].data_post + "</span></p><p class='messStr'>" + arrMessage[i].message + "</p>";
+            div.innerHTML = "<p class='dataMessStr'><span>" + arrMessage[i].username + "</span><span>" + data + "</span></p><p class='messStr'>" + arrMessage[i].message + "</p>";
             div.setAttribute("idMess", arrMessage[i].id);
             if (funName == 'viewUp') {
                 div2.insertBefore(div, div2.firstChild);
@@ -69,13 +83,24 @@ function roundMessage() {
     var fullScroll = div2.scrollHeight - div2.clientHeight;
     var topScroll = div2.scrollTop;
     var bottomScroll = fullScroll - topScroll;
-    if (topScroll < 30) {
+    if (topScroll < 30 ) {
         getMessage('viewUp');
-    } else if (bottomScroll < 30) {
+    } else if (bottomScroll  < 30 ) {
         getMessage('viewDn');
     }
-    timeout = (colNewMessage != 0) ? 2000 : (timeout > 256000) ? timeout : timeout * 2;
+    // timeout = (colNewMessage) ? 2000 : (timeout > 60000) ? timeout : timeout * 2;
     setTimeout('roundMessage()', timeout);
+}
+function getData( data ){
+    var today = new  Date();
+    var dt = new  Date( data  );
+    if( dt.getFullYear() == today.getFullYear() && dt.getMonth() == today.getMonth() && dt.getDate() == today.getDate()  ){
+        var strDate = "сегодня" + dt.toLocaleString("ru", {  hour: 'numeric',minute: 'numeric' }) ;
+    }else{
+        var strDate = dt.toLocaleString("ru", {  month: 'long', day: 'numeric', hour: 'numeric',minute: 'numeric' }) ;
+    }
+  //  alert( dt );
+    return strDate;
 }
 //=============================================================================
 function AjaxGETResponse() {

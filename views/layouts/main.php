@@ -39,6 +39,7 @@ AppAsset::register($this);
             ['label' => 'Home', 'url' => ['/site/index']],
             ['label' => 'Правила', 'url' => ['/site/about']],
             ['label' => 'Рейтинг', 'url' => ['/site/rating']],
+            ['label' => 'История игр', 'url' => ['/site/history']],
             Yii::$app->user->isGuest ? (
                 ['label' => 'Login', 'url' => ['/site/login']]
             ) : (
@@ -72,16 +73,15 @@ AppAsset::register($this);
         ]) ?>
         <?= $content ?>
     </div>
-</div>
 
+</div>
+<?php /*
 <footer class="footer">
     <div class="container">
         <p class="pull-left">&copy; Dots <?= date('Y') ?></p>
-
-        <p class="pull-right"><?= Yii::powered() ?></p>
     </div>
 </footer>
-
+*/ ?>
 <?php $this->endBody() ?>
 </body>
 </html>

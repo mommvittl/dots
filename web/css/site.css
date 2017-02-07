@@ -114,10 +114,35 @@ a.desc:after {
     outline: none;
 }
 
-#mapid {
+#mapid, #replayMap {
     height: 500px;
 }
 
 #players {
     width: 100%;
 }
+
+#homeImage {
+    display: block;
+    width: 100%;
+    margin: 10px auto;
+    max-width: 500px;
+}
+
+.btn-block {
+    margin: auto;
+    max-width: 500px;
+}
+
+#history {
+    margin: auto;
+    max-width: 600px;
+}
+
+#slider {
+    margin-top: 15px;
+}
+.winner { color: red; }
+.loser { color: blue; }
+
+#historyTable td { width: auto; }

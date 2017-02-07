@@ -2,39 +2,32 @@
 
 namespace app\controllers;
 
-use app\models\User;
 use Yii;
 use app\controllers\BasisController;
 use app\models\Game;
+use app\models\User;
 
 class RulingController extends BasisController {
 
     public function actionIndex() {
 
-        /*
-          phpinfo();
-          $query = [
-          'idGame' => $this->idGame,
-          'idGamer' =>$this->idGamer,
-          'idEnemy' => $this->idEnemy,
-          'startTime' => $this->startTime
-
-          ];
-          return $this->render('test', ['dots' => $query]); */
+        $this->queryPar = $this->getQueryParam();
+        $query = $this->queryPar;
+        // var_dump($query);
+        $this->sendRequest(['status' => 'test', 'par' => json_encode($this->queryPar)]);
+        return $this->render('test', ['dots' => $query]);
     }
 
     public function actionGetReady() {
-        
-        $strParameter = file_get_contents('php://input');
-        $newPosition = json_decode($strParameter);
-        
-        if (!$this->newPositionValidate($newPosition)) {
+
+        $this->queryPar = $this->getQueryParam();
+        if (!$this->newPositionValidate($this->queryPar)) {
             $this->sendRequest(['status' => 'error', 'message' => 'error: incorrect input data']);
         }
         
         $this->deleteOldReady();
-        
-        $request = $this->updateReady($newPosition);
+
+        $request = $this->updateReady($this->queryPar);
         $request['arrOpponents'] = $this->getOpponents();
         $this->sendRequest($request);
     }
@@ -49,9 +42,9 @@ class RulingController extends BasisController {
     }
 
     public function actionEnemySelection() {
-        $strParameter = file_get_contents('php://input');
-        $newPosition = json_decode($strParameter);
-        $this->idEnemy = (int) $newPosition->idEnemy;
+
+        $this->queryPar = $this->getQueryParam();
+        $this->idEnemy = (int) $this->queryPar->idEnemy;
         if (!$this->existenceUser($this->idEnemy)) {
             $this->sendRequest(['status' => 'error: idEnemy  does not exist ']);
         }
@@ -71,26 +64,28 @@ class RulingController extends BasisController {
     }
 
     public function actionStopGame() {
+
         $this->getGameVar();
+        $this->queryPar = $this->getQueryParam();
+        $surrend = ( $this->queryPar && isset($this->queryPar->surrend) ) ? (int) $this->queryPar->surrend : 0;
         if (!$this->existenceGame($this->idGame, $this->idGamer, $this->idEnemy)) {
             $this->sendRequest(['status' => 'error', 'message' => ' error: access denied 2 ']);
         }
         $this->deleteReady($this->idGamer, $this->idEnemy);
-        $this->getWinner($this->idGame);
+        $this->getWinner($this->idGame, $surrend);
         $this->sendRequest(['status' => 'ok']);
     }
 
-    public function actionRemoveSession() {
-        if (isset($_SESSION['idEnemy'])) {
-            unset($_SESSION['idEnemy']);
-        }
-        if (isset($_SESSION['idGame'])) {
-            unset($_SESSION['idGame']);
-        }
-        if (isset($_SESSION['startTime'])) {
-            unset($_SESSION['startTime']);
-        }
-        $this->sendRequest(['status' => 'ok']);
+    public function actionGetGamelist() {
+        $query = Game::find()
+                ->select('g.id, u1.username as gm1, u2.username as gm2,`start_time`,'
+                        . '`stop_time`, u3.username as wn,`user1_scores`,`user2_scores`')
+                ->from('`game` as g , `user` as u1, `user` as u3, `user`as u2')
+                ->where('g.`user1_id` = u1.id AND g.`user2_id` = u2.id AND g.`winner_id` = u3.id AND g.id > 100')
+                ->asArray()
+                ->all();
+        return $query;
+        $this->sendRequest(['status' => 'ok', 'arrHistoryGame' => $query]);
     }
 
     //======================================================
@@ -161,9 +156,11 @@ class RulingController extends BasisController {
     }
 
     protected function addGame($idEnemy) {
+        $updateTime = new \DateTime();
         $query = new \app\models\Game();
         $query->user1_id = $this->idGamer;
         $query->user2_id = $idEnemy;
+        $query->start_time = $updateTime->format('Y-m-d H:i:s');
         $query->save();
     }
 
@@ -213,26 +210,36 @@ class RulingController extends BasisController {
         return TRUE;
     }
 
-    protected function getWinner($idGame) {
+    protected function getWinner($idGame, $surrend) {
+        $updateTime = new \DateTime();
         $query = \app\models\Game::findOne((int) $idGame);
         $idGamer1 = (int) $query->user1_id;
         $idGamer2 = (int) $query->user2_id;
-        $score1 = ( $query->user1_scores ) ? (int) $query->user1_scores : 0;
-        $score2 = ( $query->user2_scores ) ? (int) $query->user2_scores : 0;
+        if ($surrend) {
+            $score1 = ( $idGamer1 == $this->idGamer ) ? 0 : (int) $query->user1_scores;
+            $score2 = ( $idGamer2 == $this->idGamer ) ? 0 : (int) $query->user2_scores;
+        } else {
+            $score1 = ( $query->user1_scores ) ? (int) $query->user1_scores : 0;
+            $score2 = ( $query->user2_scores ) ? (int) $query->user2_scores : 0;
+        }
         if ($score1 != $score2) {
             $winner = ( $score1 > $score2 ) ? $query->user1_id : $query->user2_id;
         } else {
             $winner = 0;
         }
+        $query->user1_scores = $score1;
+        $query->user2_scores = $score2;
         $query->winner_id = $winner;
+        $query->stop_time = $updateTime->format('Y-m-d H:i:s');
         $query->update();
 
-        $query = User::findOne($idGamer1);
-        $query->scores = (int) $query->scores + $score1;
-        $query->update();
-        $query = User::findOne($idGamer2);
-        $query->scores = (int) $query->scores + $score2;
-        $query->update();
+        $queryG1 = User::findOne($idGamer1);
+        $queryG1->scores = (int) $queryG1->scores + $score1;
+        $queryG1->update();
+
+        $queryG2 = User::findOne($idGamer2);
+        $queryG2->scores = (int) $queryG2->scores + $score2;
+        $queryG2->update();
         return;
     }
 

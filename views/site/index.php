@@ -6,14 +6,20 @@ $this->title = 'Dots';
 $this->registerJsFile('https://unpkg.com/leaflet@1.0.2/dist/leaflet.js', ['position' => yii\web\View::POS_HEAD]);
 $this->registerCssFile('https://unpkg.com/leaflet@1.0.2/dist/leaflet.css');
 $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
+$this->registerJsFile('/web/js/nouislider.js', ['position' => yii\web\View::POS_END]);
+$this->registerCssFile('/web/css/nouislider.css');
 
 ?>
 <div class="site-index">
 
     <div class="body-content">
         <div id="mode">
-            <button onclick="startGPS()">With GPS</button>
-            <button onclick="startSimulation()">simulation</button>
+            <div class="btn-block">
+                <button type="button" class="btn btn-success btn-lg btn-block" onclick="startGPS()">With GPS</button>
+                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="startSimulation()">Simulation</button>
+                <button type="button" class="btn btn-primary btn-lg btn-block" onclick="getHistory()">Watch replays</button>
+            </div>
+                <img id="homeImage" src="/images/dots.png" alt="dots">
         </div>
         <div id="game" hidden>
             <div class="row">
@@ -26,7 +32,7 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
                 </div>
             </div>
             <div id="error" class="alert alert-danger" role="alert" hidden></div>
-            <div class="row">
+            <div class="row" id="map">
                 <div class="col-sm-8" id="mapid"></div>
                 <div id="prepare" class="col-sm-4">
                     <div class="row ">
@@ -43,7 +49,6 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
-<!--                        <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>-->
                         <h4 class="modal-title" id="Scores">Final Scores</h4>
                     </div>
                     <div class="modal-body">
@@ -54,6 +59,28 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
                     <div class="modal-footer">
                         <button type="button" class="btn btn-primary" onclick="restart()">OK</button>
                     </div>
+                </div>
+            </div>
+        </div>
+        <div id="history" hidden>
+            <table id="replayList" class="table table-hover">
+                <tr>
+                    <th>Game id</th>
+                    <th>Opponents</th>
+                    <th>Winner</th>
+                </tr>
+            </table>
+        </div>
+        <div id="replay" hidden>
+            <div class="row" id="replayMap"></div>
+            <div id="slider"></div>
+            <div class="row">
+                <div class="col-xs-4" id="slider-start"></div>
+                <div class="col-xs-4">
+                    <div style="text-align: center" id="slider-val"></div>
+                </div>
+                <div class="col-xs-4" >
+                    <div class="pull-right" id="slider-end"></div>
                 </div>
             </div>
         </div>

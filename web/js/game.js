@@ -16,9 +16,7 @@ var lastPoint = null;
 var lastPolygonId = 0;
 var lastDelDotId = 0;
 var lastDelPolygonId = 0;
-var idGamer = 0;
 var opponents = [];
-var opponentId = 0;
 var intervalId = null;
 var myRadius = 0;
 var ready = false;
@@ -26,11 +24,23 @@ var simulateInterval = null;
 var enemyMarker = null;
 var icon = null;
 var requesting = false;
+var slider = null;
+var startSlider = null;
+var endSlider = null;
+var replayInterval = null;
+var list = null;
+var sliderVal = null;
+var idGame = null;
+var lastDate = null;
+var step = 1000;
+var replay = null;
+var layer = null;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
     maximumAge: 0
 };
+
 var enemyIcon = L.icon({
     iconUrl: '/images/enemy-marker.png',
     iconSize: [25, 41],
@@ -70,11 +80,150 @@ function startSimulation() {
     bindKeys();
 }
 
+function timestamp(str){
+    return new Date(str).getTime();
+}
+
+function timestampToTime(timestamp) {
+    var date = new Date(timestamp);
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+    return hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+}
+
+function getHistory() {
+    $('#mode').attr('hidden', 'true');
+    $('#history').removeAttr('hidden');
+
+    $.ajax({
+        type: 'POST',
+        url: "/history/get-historylist",
+        data: JSON.stringify(),
+        success: drawHistory,
+        timeout: 9000
+    });
+}
+
+function drawHistory(data) {
+    list = data.historyList;
+    for (var i=0; i < list.length; i++) {
+        var tr = $('<tr>');
+        if (!list[i].user1_scores) {
+            list[i].user1_scores = 0;
+        }
+        if (!list[i].user2_scores) {
+            list[i].user2_scores = 0;
+        }
+        tr.attr('id', i);
+        tr.append($('<td>').text(list[i].idGame))
+            .append($('<td>').text(list[i].user1_name + ' ( ' + list[i].user1_scores + ' )' + ' - '
+            + list[i].user2_name + ' ( ' + list[i].user2_scores + ' )'))
+            .append($('<td>').text(list[i].winner_name));
+        tr.on('click', function(data) {
+            startReplay(data.delegateTarget.id);
+        });
+        $('#replayList').append(tr);
+    }
+}
+
+function startReplay(i) {
+    var gameInfo = list[i];
+    replay = true;
+    idGame = gameInfo.idGame;
+    lastDate = gameInfo.start_time;
+    $('#history').attr('hidden', 'true');
+    $('#replay').removeAttr('hidden');
+    replayMap();
+    startSlider = timestamp(gameInfo.start_time);
+    endSlider = timestamp(gameInfo.stop_time);
+    slider = document.getElementById('slider');
+    sliderVal = document.getElementById('slider-val');
+    $('#slider-start').text(timestampToTime(parseInt(startSlider)));
+    $('#slider-end').text(timestampToTime(parseInt(endSlider)));
+    noUiSlider.create(slider, {
+        start: startSlider,
+        behaviour: 'snap',
+        connect: [true, false],
+        step: 1,
+        direction: 'ltr',
+        range: {
+            'min': startSlider,
+            'max':  endSlider
+        }
+    });
+    slider.noUiSlider.on('change', function( value ){
+        if (!replayInterval) {
+            replayInterval = setInterval(nextStep, step);
+        }
+        sliderVal.innerHTML = timestampToTime(parseInt(value));
+        map.eachLayer(function (myLayer) {
+            if (!myLayer.options.id) {
+                map.removeLayer(myLayer)
+            }
+        });
+        lastDate = gameInfo.start_time;
+    });
+    if (!replayInterval) {
+        replayInterval = setInterval(nextStep, step);
+    }
+}
+
+function replayMap() {
+    map = L.map('replayMap', {center: [49.98986319656137, 36.229476928710945], zoom: 14});
+    layer = L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
+        maxZoom: 18,
+        id: 'm1sha87.2hmg0n2n',
+        accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
+    }).addTo(map);
+}
+
+function getReplayData() {
+    var data = {
+        'idGame': idGame,
+        'startTime': lastDate,
+        'stopTime': currentDate
+    };
+    $.ajax({
+        type: 'POST',
+        url: "/history/history",
+        data: JSON.stringify(data),
+        success: drawData,
+        timeout: parseInt(step) + 1000
+    });
+    lastDate = currentDate;
+}
+
+function timestampToDate(timestamp) {
+    var date = new Date();
+    date.setTime(timestamp);
+    var year = date.getFullYear();
+    var month = "0" + (parseInt(date.getMonth()) + 1);
+    var day = date.getDate();
+    var hours = date.getHours();
+    var minutes = "0" + date.getMinutes();
+    var seconds = "0" + date.getSeconds();
+    return year + '-' + month.substr(-2) + '-' + day + ' ' + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
+}
+
+function nextStep() {
+    var value = parseInt(slider.noUiSlider.get()) + step;
+    sliderVal.innerHTML = timestampToTime(value);
+    if (value >= endSlider) {
+        clearInterval(replayInterval);
+        replayInterval = null;
+    }
+    slider.noUiSlider.set(value);
+    currentDate = timestampToDate(value);
+    getReplayData();
+}
+
 // Смена декораций
 function modeSelected() {
     $('#mode').attr('hidden', 'true');
     $('#game').removeAttr('hidden');
 }
+
 
 // Отрисовка карты и маркера игрока
 function drawMap(pos) {
@@ -123,8 +272,96 @@ function getReady() {
     intervalId = setInterval(sendPosition, 15000);
 }
 
+// Обработка ошибки навигации
 function errorNavigate() {
 
+}
+
+// Отправка текущей позиции и получение списка противников
+function sendPosition(){
+    var point = {
+        'latitude': currentPos.latitude,
+        'longitude': currentPos.longitude,
+        'accuracy': currentPos.accuracy,
+        'speed': currentPos.speed
+    };
+    $.ajax({
+        type: 'POST',
+        url: "/ruling/get-ready",
+        data: JSON.stringify(point),
+        success: drawOpponents,
+        timeout: 9000
+    });
+}
+
+// Добавление маркеров оппонентов и добавление их в список
+function drawOpponents(data) {
+    if (data.status && data.status == "error") {
+        return false;
+    }
+    if ((data.status && data.status == "ok") || (data.opponent && data.idGame)) {
+        startGame();
+        return true;
+    } else {
+        changeHelpText('Choose your opponent...');
+        var arrOpponents = data.arrOpponents;
+        var myPoint = L.latLng(currentPos.latitude, currentPos.longitude);
+        removeMarkers();
+        $('#players').empty();
+        for (var j=0; j < arrOpponents.length; j++) {
+            var enemyPoint = L.latLng(arrOpponents[j].latitude, arrOpponents[j].longitude);
+            var distance = parseInt(myPoint.distanceTo(enemyPoint));
+            if (distance > 5000) {
+                icon = greyIcon;
+            } else {
+                icon = enemyIcon;
+            }
+            var text = arrOpponents[j].nick + " ( " + distance + " m )";
+            opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude],
+                {icon: icon, id: arrOpponents[j].id})
+                .addTo(map).bindTooltip(arrOpponents[j].nick + "<br>( " + distance + " m )").openTooltip();
+            opponents[j].on('click', selectedOpponent);
+            $('#players').append($('<option>', {
+                value: arrOpponents[j].id,
+                text: text
+            }));
+        }
+        myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
+        myRadius = L.circle([currentPos.latitude, currentPos.longitude], {
+            color: 'blue',
+            fillColor: 'blue',
+            fillOpacity: 0.25,
+            radius: currentPos.accuracy
+        }).addTo(map);
+    }
+}
+
+// Очистка всех маркеров с карты
+function removeMarkers() {
+    for (var i=0; i < opponents.length; i++) {
+        map.removeLayer(opponents[i]);
+    }
+    map.removeLayer(myMarker);
+    map.removeLayer(myRadius);
+    myMarker = null;
+}
+
+// Определение id противника
+function selectedOpponent() {
+    var idEnemy = null;
+    if (this.options.id) {
+        idEnemy = this.options.id;
+    } else {
+        idEnemy = $("#players option:selected").val();
+    }
+    var data = {idEnemy : idEnemy};
+    $.ajax({
+        type: 'POST',
+        url: "/ruling/enemy-selection",
+        data: JSON.stringify(data),
+        success: drawOpponents,
+        timeout: 4000
+    });
 }
 
 // Запуск игры
@@ -140,9 +377,10 @@ function startGame() {
         simulateInterval = setInterval(getData, 5000);
     }
     $('#prepare').remove();
-    $('#mapid').attr('class', 'col-sm-12');
     removeMarkers();
     map.remove();
+    $('#mapid').remove();
+    $('#map').append('<div class="col-sm-12" id="mapid">');
     map = L.map('mapid', {center: [currentPos.latitude, currentPos.longitude], zoom: 14});
     L.tileLayer('https://a.tiles.mapbox.com/v4/{id}/{z}/{x}/{y}.png?access_token={accessToken}', {
         maxZoom: 18,
@@ -151,6 +389,40 @@ function startGame() {
     }).addTo(map);
     $('#gameover').removeAttr('hidden');
     getData();
+}
+
+// Отмена слежения и интервалов
+function stopWatch() {
+    navigator.geolocation.clearWatch(watchID);
+    watchID = null;
+    clearInterval(intervalId);
+    clearInterval(simulateInterval);
+}
+
+// Назначение действий клавишам (для режима симуляции)
+function bindKeys() {
+    $("html").keydown(function(event){
+        var key = event.keyCode;
+        switch (key){
+            case 87:
+            case 119:
+                currentPos.latitude = parseFloat(currentPos.latitude) + 0.0005;
+                break;
+            case 83:
+            case 115:
+                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0005;
+                break;
+            case 68:
+            case 100:
+                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0005;
+                break;
+            case 65:
+            case 97:
+                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0005;
+                break;
+        }
+        newPosition();
+    });
 }
 
 // Остановка игры
@@ -163,6 +435,7 @@ function stopGame() {
     });
 }
 
+// Получение обновленной информации по текущим точкам и полигонам
 function getData(data){
     if (watchID == null) {
         return false;
@@ -189,6 +462,7 @@ function getData(data){
     }
 }
 
+// Отправка запроса на добавление новой точки
 function sendPoint(points){
     if (!requesting) {
         $.ajax({
@@ -203,98 +477,12 @@ function sendPoint(points){
     }
 }
 
+// Обработка ошибки запроса
 function error() {
     requesting = false;
 }
 
-function drawOpponents(data) {
-    if (data.status && data.status == "error") {
-        return false;
-    }
-    if ((data.status && data.status == "ok") || (data.opponent && data.idGame)) {
-        startGame();
-        return true;
-    } else {
-        changeHelpText('Choose your opponent...');
-        var arrOpponents = data.arrOpponents;
-        var myPoint = L.latLng(currentPos.latitude, currentPos.longitude);
-        removeMarkers();
-        $('#players').empty();
-        for (var j=0; j < arrOpponents.length; j++) {
-            var enemyPoint = L.latLng(arrOpponents[j].latitude, arrOpponents[j].longitude);
-            var distance = parseInt(myPoint.distanceTo(enemyPoint));
-            if (distance > 5000) {
-                icon = greyIcon;
-            } else {
-                icon = enemyIcon;
-            }
-            var text = arrOpponents[j].nick + " ( " + distance + " m )";
-            opponents[j] = L.marker([arrOpponents[j].latitude, arrOpponents[j].longitude],
-                {icon: icon, id: arrOpponents[j].id})
-                .addTo(map).bindTooltip(arrOpponents[j].nick).openTooltip();
-            opponents[j].on('click', selectedOpponent);
-            $('#players').append($('<option>', {
-                value: arrOpponents[j].id,
-                text: text
-            }));
-        }
-        myMarker = L.marker([currentPos.latitude, currentPos.longitude]).addTo(map);
-        myRadius = L.circle([currentPos.latitude, currentPos.longitude], {
-            color: 'blue',
-            fillColor: 'blue',
-            fillOpacity: 0.25,
-            radius: currentPos.accuracy
-        }).addTo(map);
-    }
-}
-
-function removeMarkers() {
-    for (var i=0; i < opponents.length; i++) {
-        map.removeLayer(opponents[i]);
-    }
-    map.removeLayer(myMarker);
-    map.removeLayer(myRadius);
-    myMarker = null;
-}
-function selectedOpponent() {
-    if (this.options.id) {
-        opponentId = this.options.id;
-        return enemySelect();
-    }
-    opponentId = $("#players option:selected").val();
-    return enemySelect();
-}
-
-function enemySelect() {
-    if (opponentId) {
-        var idEnemy = {idEnemy : opponentId};
-        $.ajax({
-            type: 'POST',
-            url: "/ruling/enemy-selection",
-            data: JSON.stringify(idEnemy),
-            success: drawOpponents,
-            timeout: 4000
-        });
-    }
-}
-
-
-function sendPosition(){
-    var point = {
-        'latitude': currentPos.latitude,
-        'longitude': currentPos.longitude,
-        'accuracy': currentPos.accuracy,
-        'speed': currentPos.speed
-    };
-    $.ajax({
-        type: 'POST',
-        url: "/ruling/get-ready",
-        data: JSON.stringify(point),
-        success: drawOpponents,
-        timeout: 9000
-    });
-}
-
+// Отрисовка и удаление точек и полигонов
 function drawData(data) {
     requesting = false;
     points = [];
@@ -328,19 +516,7 @@ function drawData(data) {
     }
 }
 
-function finalScores(data) {
-    stopWatch();
-    var text = (data.winner == 'me') ? 'YOU WIN!' : 'YOU LOSE!';
-    $('#winner').text(text);
-    $('#scoresMe').text('Your scores: ' + data.scoresMe);
-    $('#scoresEnemy').text('Opponent scores: ' + data.scoresEnemy);
-    $('#finalScores').modal('show');
-}
-
-function restart() {
-    location.reload();
-}
-
+// Добавление точек на карту
 function addDots(dots) {
     for (var i = 0; i < dots.length; i++) {
         if (dots[i].gamer == 'me') {
@@ -351,6 +527,13 @@ function addDots(dots) {
                 radius: dots[i].accuracy
             }).addTo(map);
             lastDot = {latitude: dots[i].latitude, longitude: dots[i].longitude, accuracy: dots[i].accuracy};
+            if (replay) {
+                if (!myMarker) {
+                    myMarker = L.marker([dots[i].latitude, dots[i].longitude]).addTo(map);
+                } else {
+                    myMarker.setLatLng([dots[i].latitude, dots[i].longitude]);
+                }
+            }
         } else {
             opponentDots[dots[i].id] = L.circle([dots[i].latitude, dots[i].longitude], {
                 color: 'red',
@@ -370,9 +553,20 @@ function addDots(dots) {
     if (simulation && !currentPoint && lastDot) {
         currentPos = {latitude: lastDot.latitude, longitude: lastDot.longitude, accuracy: lastDot.accuracy, speed: lastDot.speed} ;
     }
+    var lastMarker = L.latLng(dots[dots.length-1].latitude, dots[dots.length-1].longitude);
+    /*if (myMarker && enemyMarker) {
+        var lat = Math.abs(myMarker._latlng.lat - enemyMarker._latlang.lat);
+        var lang = Math.abs(myMarker._latlng.lang - enemyMarker._latlang.lang);
+    }*/
+    var distToCent = map.distance(map.getCenter(), lastMarker);
+    console.log(distToCent);
+    if (distToCent > 1000) {
+        map.flyTo(lastMarker);
+    }
     lastDotId = dots[dots.length-1].id;
 }
 
+// Добавление полигонов на карту
 function addPolygons(polygons) {
     for (var i=0; i < polygons.length; i++) {
         if (polygons[i].gamer == 'me') {
@@ -393,6 +587,7 @@ function addPolygons(polygons) {
     lastPolygonId = polygons[polygons.length-1].id;
 }
 
+// Удаление точек с карты
 function deleteDots(dots) {
     for (var i=0; i < dots.length; i++) {
         var id = dots[i].id;
@@ -405,6 +600,7 @@ function deleteDots(dots) {
     }
 }
 
+// Удаление полигонов с карты
 function deletePolygons(polygons) {
     for (var i=0; i < polygons.length; i++) {
         var id = polygons[i].id;
@@ -417,41 +613,12 @@ function deletePolygons(polygons) {
     }
 }
 
-function bindKeys() {
-    $("html").keydown(function(event){
-        var key = event.keyCode;
-        switch (key){
-            case 87:
-            case 119:
-                currentPos.latitude = parseFloat(currentPos.latitude) + 0.0005;
-                break;
-            case 83:
-            case 115:
-                currentPos.latitude = parseFloat(currentPos.latitude) - 0.0005;
-                break;
-            case 68:
-            case 100:
-                currentPos.longitude = parseFloat(currentPos.longitude) + 0.0005;
-                break;
-            case 65:
-            case 97:
-                currentPos.longitude = parseFloat(currentPos.longitude) - 0.0005;
-                break;
-        }
-        newPosition();
-    });
-}
-
-function stopWatch() {
-    navigator.geolocation.clearWatch(watchID);
-    watchID = null;
-    clearInterval(intervalId);
-    clearInterval(simulateInterval);
-}
-
+// Запись текущих координат
 function setCurrentPos(pos) {
     currentPos = pos.coords;
 }
+
+// Обновление текущей позиции
 function newPosition(pos) {
     if (!simulation) {
         currentPos = pos.coords;
@@ -461,7 +628,7 @@ function newPosition(pos) {
         lastDot.accuracy = -1;
     }
     if (simulation) {
-        currentPos.accuracy = parseInt((Math.random() * 30) + 10);
+        currentPos.accuracy = parseInt((Math.random() * 40) + 10);
     }
     currentPoint = L.latLng(currentPos.latitude, currentPos.longitude);
     lastPoint = L.latLng(lastDot.latitude, lastDot.longitude);
@@ -471,7 +638,7 @@ function newPosition(pos) {
         myMarker.setLatLng([currentPos.latitude, currentPos.longitude]);
     }
     var distance = currentPoint.distanceTo(lastPoint);
-    if (distance >= 20) {
+    if (distance >= 20 && currentPos.accuracy < 51) {
         point = {
             'latitude': currentPos.latitude,
             'longitude': currentPos.longitude,
@@ -481,4 +648,19 @@ function newPosition(pos) {
         points = [point];
         sendPoint(points);
     }
+}
+
+// Отображение финальных результатов
+function finalScores(data) {
+    stopWatch();
+    var text = (data.winner == 'me') ? 'YOU WIN!' : 'YOU LOSE!';
+    $('#winner').text(text);
+    $('#scoresMe').text('Your scores: ' + data.scoresMe);
+    $('#scoresEnemy').text('Opponent scores: ' + data.scoresEnemy);
+    $('#finalScores').modal('show');
+}
+
+// Перезагрузка странички
+function restart() {
+    location.reload();
 }
