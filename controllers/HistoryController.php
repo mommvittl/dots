@@ -160,8 +160,8 @@ class HistoryController extends BasisController {
         $newLastId = $prevLastId;
         $query = Deleted_points::find()
                 ->select(' `id`, `point_id` ')
-                ->where('  `game_id` = :idGame  and `timestamp` > FROM_UNIXTIME( :startTime ) '
-                        . 'and `timestamp` <= FROM_UNIXTIME( :stopTime )  ')
+                ->where('  `game_id` = :idGame  and `del_time` > FROM_UNIXTIME( :startTime ) '
+                        . 'and `del_time` <= FROM_UNIXTIME( :stopTime )  ')
                 ->addParams([
                     ':idGame' => $this->idGame,
                     ':startTime' => $this->startTime,
@@ -181,8 +181,8 @@ class HistoryController extends BasisController {
         $newLastId = $prevLastId;
         $query = Deleted_polygons::find()
                 ->select(' id, polygon_id ')
-                ->where('  `game_id` = :idGame  and `timestamp` > FROM_UNIXTIME( :startTime ) '
-                        . 'and `timestamp` <= FROM_UNIXTIME( :stopTime )  ')
+                ->where('  `game_id` = :idGame  and `del_time` > FROM_UNIXTIME( :startTime ) '
+                        . 'and `del_time` <= FROM_UNIXTIME( :stopTime )  ')
                 ->addParams([
                     ':idGame' => $this->idGame,
                     ':startTime' => $this->startTime,
