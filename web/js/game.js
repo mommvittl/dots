@@ -35,6 +35,8 @@ var lastDate = null;
 var step = 1000;
 var replay = null;
 var layer = null;
+var tempStep = 1000;
+var gameInfo = null;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
@@ -128,15 +130,15 @@ function drawHistory(data) {
 }
 
 function startReplay(i) {
-    var gameInfo = list[i];
+    gameInfo = list[i];
     replay = true;
     idGame = gameInfo.idGame;
     lastDate = gameInfo.start_time;
     $('#history').attr('hidden', 'true');
     $('#replay').removeAttr('hidden');
     replayMap();
-    startSlider = timestamp(gameInfo.start_time);
-    endSlider = timestamp(gameInfo.stop_time);
+    startSlider = gameInfo.start_timestamp*1000;
+    endSlider = gameInfo.stop_timestamp*1000;
     slider = document.getElementById('slider');
     sliderVal = document.getElementById('slider-val');
     $('#slider-start').text(timestampToTime(parseInt(startSlider)));
@@ -152,21 +154,25 @@ function startReplay(i) {
             'max':  endSlider
         }
     });
-    slider.noUiSlider.on('change', function( value ){
-        if (!replayInterval) {
-            replayInterval = setInterval(nextStep, step);
-        }
-        sliderVal.innerHTML = timestampToTime(parseInt(value));
-        map.eachLayer(function (myLayer) {
-            if (!myLayer.options.id) {
-                map.removeLayer(myLayer)
-            }
-        });
-        lastDate = gameInfo.start_time;
-    });
+    slider.noUiSlider.on('change', sliderChange);
     if (!replayInterval) {
         replayInterval = setInterval(nextStep, step);
     }
+}
+
+function sliderChange(value){
+    if (!replayInterval) {
+        replayInterval = setInterval(nextStep, step);
+    }
+    sliderVal.innerHTML = timestampToTime(parseInt(value));
+    map.eachLayer(function (myLayer) {
+        if (!myLayer.options.id) {
+            map.removeLayer(myLayer)
+        }
+    });
+    myMarker = null;
+    enemyMarker = null;
+    lastDate = gameInfo.start_timestamp*1000;
 }
 
 function replayMap() {
@@ -181,8 +187,8 @@ function replayMap() {
 function getReplayData() {
     var data = {
         'idGame': idGame,
-        'startTime': lastDate,
-        'stopTime': currentDate
+        'startTime': lastDate/1000,
+        'stopTime': currentDate/1000
     };
     $.ajax({
         type: 'POST',
@@ -194,18 +200,6 @@ function getReplayData() {
     lastDate = currentDate;
 }
 
-function timestampToDate(timestamp) {
-    var date = new Date();
-    date.setTime(timestamp);
-    var year = date.getFullYear();
-    var month = "0" + (parseInt(date.getMonth()) + 1);
-    var day = date.getDate();
-    var hours = date.getHours();
-    var minutes = "0" + date.getMinutes();
-    var seconds = "0" + date.getSeconds();
-    return year + '-' + month.substr(-2) + '-' + day + ' ' + hours + ':' + minutes.substr(-2) + ':' + seconds.substr(-2);
-}
-
 function nextStep() {
     var value = parseInt(slider.noUiSlider.get()) + step;
     sliderVal.innerHTML = timestampToTime(value);
@@ -214,8 +208,36 @@ function nextStep() {
         replayInterval = null;
     }
     slider.noUiSlider.set(value);
-    currentDate = timestampToDate(value);
+    currentDate = value;
     getReplayData();
+}
+
+function stepBackward() {
+    if (step > 200) {
+        step = parseInt(step / 2);
+    }
+}
+
+function stepForward() {
+    if (step < 60000) {
+        step = parseInt(step * 2);
+    }
+}
+
+function stepPause() {
+    tempStep = step;
+    step = 0;
+}
+
+function stepPlay() {
+    step = tempStep;
+}
+
+function stepStop() {
+    tempStep = 1000;
+    stepPause();
+    slider.noUiSlider.reset();
+    sliderChange(slider.noUiSlider.get());
 }
 
 // Смена декораций
@@ -553,15 +575,12 @@ function addDots(dots) {
     if (simulation && !currentPoint && lastDot) {
         currentPos = {latitude: lastDot.latitude, longitude: lastDot.longitude, accuracy: lastDot.accuracy, speed: lastDot.speed} ;
     }
-    var lastMarker = L.latLng(dots[dots.length-1].latitude, dots[dots.length-1].longitude);
-    /*if (myMarker && enemyMarker) {
-        var lat = Math.abs(myMarker._latlng.lat - enemyMarker._latlang.lat);
-        var lang = Math.abs(myMarker._latlng.lang - enemyMarker._latlang.lang);
-    }*/
-    var distToCent = map.distance(map.getCenter(), lastMarker);
-    console.log(distToCent);
-    if (distToCent > 1000) {
-        map.flyTo(lastMarker);
+    if (replay) {
+        var lastMarker = L.latLng(dots[dots.length - 1].latitude, dots[dots.length - 1].longitude);
+        var distToCent = map.distance(map.getCenter(), lastMarker);
+        if (distToCent > 1000) {
+            map.flyTo(lastMarker);
+        }
     }
     lastDotId = dots[dots.length-1].id;
 }

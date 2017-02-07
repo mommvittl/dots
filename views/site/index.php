@@ -73,14 +73,25 @@ $this->registerCssFile('/web/css/nouislider.css');
         </div>
         <div id="replay" hidden>
             <div class="row" id="replayMap"></div>
-            <div id="slider"></div>
-            <div class="row">
-                <div class="col-xs-4" id="slider-start"></div>
-                <div class="col-xs-4">
-                    <div style="text-align: center" id="slider-val"></div>
+            <div id="controlButtons">
+                <div class="btn-group" role="group">
+                    <button type="button" class="btn btn-default glyphicon glyphicon-backward" onclick="stepBackward()"></button>
+                    <button type="button" class="btn btn-default glyphicon glyphicon-play" onclick="stepPlay()"></button>
+                    <button type="button" class="btn btn-default glyphicon glyphicon-pause" onclick="stepPause()"></button>
+                    <button type="button" class="btn btn-default glyphicon glyphicon-stop" onclick="stepStop()"></button>
+                    <button type="button" class="btn btn-default glyphicon glyphicon-forward" onclick="stepForward()"></button>
                 </div>
-                <div class="col-xs-4" >
-                    <div class="pull-right" id="slider-end"></div>
+            </div>
+            <div id="sliderBar">
+                <div id="slider"></div>
+                <div class="row">
+                    <div class="col-xs-4" id="slider-start"></div>
+                    <div class="col-xs-4">
+                        <div style="text-align: center" id="slider-val"></div>
+                    </div>
+                    <div class="col-xs-4" >
+                        <div class="pull-right" id="slider-end"></div>
+                    </div>
                 </div>
             </div>
         </div>
