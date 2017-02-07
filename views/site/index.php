@@ -6,7 +6,6 @@ $this->title = 'Dots';
 $this->registerJsFile('https://unpkg.com/leaflet@1.0.2/dist/leaflet.js', ['position' => yii\web\View::POS_HEAD]);
 $this->registerCssFile('https://unpkg.com/leaflet@1.0.2/dist/leaflet.css');
 $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
-//var_dump($_SESSION);
 
 ?>
 <div class="site-index">
@@ -19,10 +18,11 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
         <div id="game" hidden>
             <div class="row">
                 <div>
-<!--                <button id="ready" disabled>ready</button>-->
                     <button id="watch" onclick="stopWatch()">stop watch</button>
                     <button id="gameover" onclick="stopGame()" hidden>game over</button>
                     <span id="help"></span>
+                    <span id="myScore"></span>
+                    <span id="enemyScore"></span>
                 </div>
             </div>
             <div id="error" class="alert alert-danger" role="alert" hidden></div>
@@ -36,9 +36,6 @@ $this->registerJsFile('/web/js/game.js', ['position' => yii\web\View::POS_END]);
                         <select id="players" size="10" class="form-control" onchange="selectedOpponent()">
                         </select>
                     </div>
-                    <!--<div class="row">
-                        <button id="enemySelect" disabled onclick="enemySelect()">start</button>
-                    </div>-->
                 </div>
             </div>
         </div>
