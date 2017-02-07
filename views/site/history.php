@@ -19,10 +19,11 @@ $this->title = 'Dots - history';
                 <?php
                 $color1 = ( $row['user1_name'] == $row['winner_name'] ) ? "winner" : "loser";
                 $color2 = ( $row['user2_name'] == $row['winner_name'] ) ? "winner" : "loser";
+                $data = new DateTime( $row['start_time']   );
                 ?>
                     <td class="<?= $color1 ?>"><?= $row['user1_name'] ?></td>
                     <td class="<?= $color2 ?>"><?= $row['user2_name'] ?></td>
-                    <td><?= $row['start_time'] ?></td>
+                    <td><?=  $data->format( "d M H:i" ) ?></td>
                     <td><?= $row['user1_scores'] ?></td>
                     <td><?= $row['user2_scores'] ?></td>
                 </tr>
