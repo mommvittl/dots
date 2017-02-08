@@ -1,5 +1,4 @@
 var sendNewMessageBut = document.getElementById('sendNewMessage');
-// var openForm = document.getElementById('openForm');
 var newMessageForm = document.getElementById('newMessageForm');
 var textarea = document.forms.newMessageForm.elements.message;
 textarea.onkeydown = keyDown;
@@ -24,7 +23,8 @@ function sendNewMessage() {
     if (message.length) {
         var data = JSON.stringify({'message': message});
         ajaxPOST.setAjaxQuery("/chat/new-message", data, getMessage.bind( emptyFunction, 'viewUp' ), "POST", "text");
-        document.forms.newMessageForm.elements.reset.click();
+        document.forms.newMessageForm.elements.message.value = "";
+        
     }
 }
 function emptyFunction(responseXMLDocument) {
