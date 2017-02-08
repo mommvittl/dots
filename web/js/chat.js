@@ -1,5 +1,5 @@
 var sendNewMessageBut = document.getElementById('sendNewMessage');
-var openForm = document.getElementById('openForm');
+// var openForm = document.getElementById('openForm');
 var newMessageForm = document.getElementById('newMessageForm');
 var textarea = document.forms.newMessageForm.elements.message;
 textarea.onkeydown = keyDown;
@@ -11,18 +11,7 @@ var ajaxPOST = new AjaxGETResponse;
 var ajaxGET = new AjaxGETResponse;
 var colNewMessage = 0;
 var timeout = 2000;
-newMessageForm.hidden = true;
-var hidFun =  getHidden();
-openForm.onclick = hidFun;
 roundMessage();
-
-function getHidden(  ){
-    var status = true; 
-    return function(){
-        status = !status;
-       newMessageForm.hidden = ( status ) ? true : "" ;
-    };
-}
 
 function keyDown() {
     if (event.keyCode == 13) {
@@ -32,7 +21,6 @@ function keyDown() {
 }
 function sendNewMessage() {
     var message = document.forms.newMessageForm.elements.message.value;
-    hidFun();
     if (message.length) {
         var data = JSON.stringify({'message': message});
         ajaxPOST.setAjaxQuery("/chat/new-message", data, getMessage.bind( emptyFunction, 'viewUp' ), "POST", "text");
@@ -60,7 +48,7 @@ function viewMess(funName, responseXMLDocument) {
             var data = getData( arrMessage[i].data_post );
             var div = document.createElement('div');
             div.className = "newMessge";
-            div.innerHTML = "<p class='dataMessStr'><span>" + arrMessage[i].username + "</span><span>" + data + "</span></p><p class='messStr'>" + arrMessage[i].message + "</p>";
+            div.innerHTML = "<p class='dataMessStr'><span class='nameUser'><strong>" + arrMessage[i].username + "</strong></span><span>" + data + "</span></p><p class='bg-primary messg'>" + arrMessage[i].message + "</p>";
             div.setAttribute("idMess", arrMessage[i].id);
             if (funName == 'viewUp') {
                 div2.insertBefore(div, div2.firstChild);
