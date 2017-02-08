@@ -52,11 +52,13 @@ AppAsset::register($this);
                 . Html::endForm()
                 . '</li>'
             ),
+/*
           Yii::$app->user->isGuest ? (
                  ['label' => 'tester', 'url' => ['/site/login']]
             ) : (
                  ['label' => 'tester', 'url' => ['/simulator/tester']]
             ),
+*/
                  Yii::$app->user->isGuest ? (
                  ['label' => 'chat', 'url' => ['/site/login']]
             ) : (
