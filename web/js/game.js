@@ -37,6 +37,7 @@ var replay = null;
 var layer = null;
 var tempStep = 1000;
 var gameInfo = null;
+var gameStarted;
 var options = {
     enableHighAccuracy: true,
     timeout: 10000,
@@ -79,7 +80,6 @@ function startSimulation() {
     watchID = 0;
     map.on('click', onMapClick);
     changeHelpText('Click on map');
-    bindKeys();
 }
 
 function timestamp(str){
@@ -318,6 +318,9 @@ function sendPosition(){
 
 // Добавление маркеров оппонентов и добавление их в список
 function drawOpponents(data) {
+    if (gameStarted) {
+        return false;
+    }
     if (data.status && data.status == "error") {
         return false;
     }
@@ -388,7 +391,9 @@ function selectedOpponent() {
 
 // Запуск игры
 function startGame() {
+    gameStarted = true;
     clearInterval(intervalId);
+    intervalId = null;
     if (!simulation) {
         changeHelpText(' ');
         stopWatch();
@@ -411,6 +416,7 @@ function startGame() {
         accessToken: 'pk.eyJ1IjoibTFzaGE4NyIsImEiOiJjaXhnOWg3N28wMDB6Mnp0bHd6eGZpZmFsIn0.51oROK3p2UywPFm3qIFYSQ'
     }).addTo(map);
     $('#gameover').removeAttr('hidden');
+    bindKeys();
     getData();
 }
 
@@ -419,7 +425,9 @@ function stopWatch() {
     navigator.geolocation.clearWatch(watchID);
     watchID = null;
     clearInterval(intervalId);
+    intervalId = null;
     clearInterval(simulateInterval);
+    simulateInterval = null;
 }
 
 // Назначение действий клавишам (для режима симуляции)
@@ -494,7 +502,7 @@ function sendPoint(points){
             data: JSON.stringify(points),
             success: getData,
             error: error,
-            timeout: 20000
+            timeout: 4000
         });
         requesting = true;
     }
