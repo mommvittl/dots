@@ -23,8 +23,7 @@ function sendNewMessage() {
     if (message.length) {
         var data = JSON.stringify({'message': message});
         ajaxPOST.setAjaxQuery("/chat/new-message", data, getMessage.bind( emptyFunction, 'viewUp' ), "POST", "text");
-        document.forms.newMessageForm.elements.message.value = "";
-        
+        document.forms.newMessageForm.elements.message.value = "";       
     }
 }
 function emptyFunction(responseXMLDocument) {
@@ -71,9 +70,9 @@ function roundMessage() {
     var fullScroll = div2.scrollHeight - div2.clientHeight;
     var topScroll = div2.scrollTop;
     var bottomScroll = fullScroll - topScroll;
-    if (topScroll < 30 ) {
+    if (topScroll < 20 ) {
         getMessage('viewUp');
-    } else if (bottomScroll  < 30 ) {
+    } else if (bottomScroll  < 20 ) {
         getMessage('viewDn');
     }
     // timeout = (colNewMessage) ? 2000 : (timeout > 60000) ? timeout : timeout * 2;
